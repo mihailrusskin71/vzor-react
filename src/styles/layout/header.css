@@ -1,0 +1,569 @@
+/* header.css - полная версия с исправлениями */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 0;
+}
+
+/* Левый блок */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* Правый блок - ИСПРАВЛЕНО */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+  margin-left: auto;
+  margin-right: 0; /* Явно указываем отсутствие отступа справа */
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
+}
+
+.logo:hover {
+  color: var(--text-primary);
+}
+
+.logo:hover .brand-x {
+  color: var(--accent);
+}
+
+.brand-x {
+  color: var(--accent);
+  text-shadow: 0 0 20px rgba(255, 106, 43, 0.4);
+  transition: color 0.3s ease;
+}
+
+/* Десктопная навигация */
+.main-nav {
+  display: flex;
+  gap: 8px;
+}
+
+.nav-link {
+  padding: 10px 16px;
+  text-decoration: none;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  transition: var(--transition);
+  position: relative;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: var(--text-primary);
+  background: rgba(255, 106, 43, 0.1);
+}
+
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -17px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background: var(--accent);
+  border-radius: 50%;
+}
+
+/* Поиск */
+.search-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.search-trigger:hover {
+  color: var(--text-primary);
+  transform: scale(1.05);
+}
+
+.search-trigger:active {
+  transform: scale(0.98);
+}
+
+.search-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  transition: transform 0.3s ease;
+}
+
+.search-trigger:hover .search-icon {
+  transform: scale(1.1);
+}
+
+.search-text {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* Кнопка входа */
+.login-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 16px;
+  min-width: auto;
+}
+
+.login-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.05);
+  color: var(--text-primary);
+}
+
+.login-btn:active {
+  transform: scale(0.98);
+}
+
+.user-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: rgba(0, 0, 0, 0.85);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.login-btn:hover .user-icon-container {
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.user-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: var(--text-primary);
+  transition: transform 0.3s ease;
+}
+
+.login-btn:hover .user-icon {
+  transform: scale(1.1);
+}
+
+.login-text {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+/* ===== МОБИЛЬНОЕ МЕНЮ ===== */
+
+/* Гамбургер кнопка */
+.hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  margin-right: 4px;
+  z-index: 1001;
+}
+
+.hamburger-icon {
+  width: 22px;
+  height: 16px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.hamburger-icon span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: var(--text-primary);
+  transition: all 0.3s ease;
+  border-radius: 2px;
+}
+
+.hamburger-icon.open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.hamburger-icon.open span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-icon.open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* Затемнение фона */
+.mobile-menu-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(3px);
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.mobile-menu-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Мобильное меню */
+.mobile-menu {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: -280px;
+  width: 260px;
+  height: 100vh;
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border-panel);
+  z-index: 1002;
+  transition: left 0.3s ease;
+  box-shadow: 2px 0 20px rgba(0, 0, 0, 0.5);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-menu.open {
+  left: 0;
+}
+
+/* Навигация в мобильном меню */
+.mobile-nav {
+  flex: 1;
+  padding: 30px 20px;
+}
+
+.mobile-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 16px 20px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 18px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  transition: background 0.3s ease;
+  border: 1px solid transparent;
+}
+
+.mobile-nav-link.active {
+  background: rgba(255, 106, 43, 0.1);
+  color: var(--text-primary);
+  border-color: rgba(255, 106, 43, 0.3);
+}
+
+.mobile-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  color: currentColor;
+}
+
+.mobile-nav-icon svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+}
+
+/* Футер мобильного меню */
+.mobile-menu-footer {
+  padding: 20px;
+  border-top: 1px solid var(--border-panel);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+/* ===== МОБИЛЬНЫЕ СТИЛИ - ИСПРАВЛЕННЫЕ ===== */
+@media (max-width: 768px) {
+  /* Фиксированная верхняя панель */
+  #top-full-width-panel {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 1000;
+    background: var(--bg-panel);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  
+  /* Отступ для основного контента, чтобы не перекрывался фиксированной шапкой */
+  #main-container {
+    margin-top: 70px !important;
+    padding-top: 0 !important;
+  }
+  
+  .hamburger-btn {
+    display: block;
+  }
+  
+  .mobile-menu {
+    display: flex;
+  }
+  
+  .mobile-menu-overlay {
+    display: block;
+  }
+  
+  /* ИСПРАВЛЕНИЕ: хедер с правильными отступами */
+  .header-inner {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px; /* Уменьшен padding с 8px 0 до 8px 12px */
+    gap: 4px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Левая часть: гамбургер + лого */
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  
+  /* Правая часть: поиск + вход - ИСПРАВЛЕНО ПОЗИЦИОНИРОВАНИЕ */
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Уменьшен gap с 12px до 8px */
+    flex-shrink: 0;
+    margin-right: 0; /* Убираем правый отступ */
+    margin-left: auto; /* Оставляем auto для прижатия к правому краю */
+    max-width: fit-content; /* Ограничиваем ширину содержимым */
+  }
+  
+  /* УВЕЛИЧЕННЫЙ ГАМБУРГЕР */
+  .hamburger-btn {
+    padding: 6px; /* Уменьшен padding для экономии места */
+  }
+  
+  .hamburger-icon {
+    width: 26px; /* Немного уменьшено */
+    height: 18px;
+  }
+  
+  .hamburger-icon span {
+    height: 2.5px;
+  }
+  
+  /* УВЕЛИЧЕННЫЙ ЛОГОТИП */
+  .logo {
+    gap: 4px; /* Уменьшен gap */
+  }
+  
+  .logo-icon svg {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .brand {
+    font-size: 20px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  
+  /* УВЕЛИЧЕННАЯ ИКОНКА ПОИСКА - СКОРРЕКТИРОВАНЫ ОТСТУПЫ */
+  .search-trigger {
+    padding: 4px; /* Уменьшен padding */
+  }
+  
+  .search-icon svg {
+    width: 26px;
+    height: 26px;
+    stroke-width: 2.2;
+  }
+  
+  /* УВЕЛИЧЕННАЯ ИКОНКА ВХОДА - СКОРРЕКТИРОВАНЫ РАЗМЕРЫ */
+  .login-btn {
+    padding: 4px; /* Уменьшен padding */
+    background: transparent;
+    min-width: auto;
+  }
+  
+  .user-icon-container {
+    width: 38px;
+    height: 38px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .user-icon svg {
+    width: 22px;
+    height: 22px;
+    stroke-width: 2.2;
+  }
+  
+  /* Убираем все hover-эффекты на мобильных */
+  .nav-link:hover,
+  .nav-link.active,
+  .movie-card:hover,
+  .custom-scroll-btn:hover,
+  .back-button:hover,
+  .watch-btn:hover,
+  .bookmark-btn-compact:hover,
+  .info-btn-compact:hover,
+  .login-btn:hover,
+  .search-trigger:hover,
+  .login-btn:hover .user-icon-container,
+  .search-trigger:hover .search-icon {
+    transform: none !important;
+    background: transparent !important;
+    border-color: rgba(255, 255, 255, 0.9) !important;
+  }
+  
+  .login-btn:hover .user-icon-container {
+    background: rgba(0, 0, 0, 0.7) !important;
+    border-color: rgba(255, 255, 255, 0.9) !important;
+  }
+  
+  /* Отключаем hover-эффекты для карточек */
+  .movie-card:hover {
+    transform: none;
+    border-color: var(--border);
+  }
+  
+  .movie-card:hover .movie-poster {
+    filter: none;
+  }
+  
+  .movie-card:hover .movie-gradient-overlay {
+    opacity: 0;
+  }
+  
+  .movie-card:hover .movie-buttons-overlay {
+    opacity: 0;
+  }
+  
+  /* ИСПРАВЛЕНИЕ: контейнер верхней панели */
+  #top-full-width-panel .container {
+    max-width: none !important;
+    width: 100%;
+    padding: 0; /* Убираем padding для container */
+  }
+  
+  .header-inner {
+    width: 100%;
+    justify-content: space-between;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  
+  /* Фикс для предотвращения горизонтального скролла */
+  html, body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+    width: 100% !important;
+    position: relative;
+  }
+  
+  #root, #main-container, #center-content, 
+  .main-content, .page-content, .content-wrapper-1100,
+  .container {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+    width: 100% !important;
+  }
+  
+  /* Фикс для очень маленьких экранов */
+  @media (max-width: 400px) {
+    .brand {
+      font-size: 18px;
+    }
+    
+    .logo-icon svg {
+      width: 28px;
+      height: 28px;
+    }
+    
+    .user-icon-container {
+      width: 34px;
+      height: 34px;
+    }
+    
+    .user-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+    
+    .search-icon svg {
+      width: 24px;
+      height: 24px;
+    }
+    
+    .header-actions {
+      gap: 4px;
+    }
+    
+    .header-inner {
+      padding-left: 8px;
+      padding-right: 8px;
+    }
+  }
+}

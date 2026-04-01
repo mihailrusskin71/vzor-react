@@ -1,0 +1,41 @@
+/* ТОЛЬКО для body */
+body::-webkit-scrollbar {
+  width: 12px;
+}
+
+body::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+body::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+body::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-hover);
+}
+
+/* Для Firefox */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) rgba(0, 0, 0, 0.2);
+}
+
+/* ОТКЛЮЧАЕМ скроллбары у всех остальных элементов */
+#center-content::-webkit-scrollbar,
+.sidebar::-webkit-scrollbar,
+.modal-content::-webkit-scrollbar {
+  display: none;
+  width: 0;
+}
+
+#center-content,
+.sidebar,
+.modal-content {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}

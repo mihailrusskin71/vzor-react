@@ -1,0 +1,1282 @@
+/* movie-detail.css - ОПТИМИЗИРОВАННЫЙ ДИЗАЙН */
+
+/* Основные стили страницы */
+.movie-detail-new {
+    padding: 0;
+    position: relative;
+}
+
+/* Hero контейнер - основная секция */
+.movie-hero-container {
+    margin-bottom: 50px;
+    position: relative;
+}
+
+.movie-hero-wrapper {
+    display: flex;
+    height: 500px;
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    background: linear-gradient(90deg, 
+        rgba(0, 0, 0, 0.95) 0%, 
+        rgba(0, 0, 0, 0.85) 25%, 
+        transparent 50%
+    );
+}
+
+/* Левая часть - логотип и информация - УВЕЛИЧЕНА С 40% ДО 45% */
+.movie-hero-left {
+    flex: 1;
+    padding: 40px 40px 40px 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    z-index: 3;
+    max-width: 45%; /* Увеличено с 40% до 45% */
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.movie-logo-section {
+    margin-bottom: 15px;
+}
+
+.movie-logo {
+    max-width: 100%;
+    max-height: 120px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.8));
+}
+
+/* Новый заголовок без градиента */
+.movie-title-fallback-new {
+    font-size: 48px;
+    font-weight: 800;
+    color: white;
+    margin: 0;
+    line-height: 1.1;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    transition: font-size 0.3s ease;
+}
+
+/* Основная информация под логотипом */
+.movie-hero-meta {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.movie-rating-large {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.rating-star {
+    color: #FFD700;
+    font-size: 24px;
+}
+
+.rating-value {
+    font-size: 26px;
+    font-weight: 800;
+    color: white;
+}
+
+/* ИСПРАВЛЕННЫЙ КОНТЕЙНЕР ИНФОРМАЦИИ - БЕЗ ВНУТРЕННИХ ПРЯМОУГОЛЬНИКОВ */
+.movie-info-row-compact {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 10px 0;
+    color: var(--text-primary);
+    font-size: 16px;
+    font-weight: 500;
+    background: transparent;
+    border: none;
+}
+
+.movie-info-row-compact span {
+    color: var(--text-primary);
+    font-size: 16px;
+    font-weight: 500;
+    background: transparent;
+    padding: 0;
+}
+
+.dot-separator {
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: bold;
+    font-size: 18px;
+    margin: 0 2px;
+}
+
+.series-badge-container {
+    margin-top: 8px;
+}
+
+.series-badge {
+    background: rgba(139, 92, 246, 0.2);
+    color: #8B5CF6;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    display: inline-block;
+}
+
+/* КНОПКИ - компактные */
+.movie-hero-actions-compact {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.watch-btn-primary-new {
+    width: 100%;
+    background: linear-gradient(135deg, #FF6A2B, #FF5722);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 10px;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 50px;
+}
+
+.watch-btn-primary-new:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(255, 106, 43, 0.5);
+}
+
+.watch-btn-primary-new .arrow-icon {
+    font-size: 20px;
+    font-weight: bold;
+    transition: transform 0.3s ease;
+}
+
+.watch-btn-primary-new:hover .arrow-icon {
+    transform: translateX(3px);
+}
+
+.bookmark-btn-secondary-new {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    border: 2px solid var(--border);
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+}
+
+.bookmark-btn-secondary-new:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--accent);
+    transform: translateY(-2px);
+}
+
+/* Правая часть - горизонтальный постер - УМЕНЬШЕНА С 70% ДО 65% */
+.movie-hero-right {
+    flex: 0 0 65%; /* Уменьшено с 70% до 65% */
+    position: relative;
+}
+
+.backdrop-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Основной стиль для бэкдропа */
+.movie-backdrop {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 20%;
+}
+
+/* Стиль для постера, когда он используется как бэкдроп */
+.movie-backdrop.poster-as-backdrop {
+    object-fit: contain;
+    object-position: center;
+    background-color: #0a0a0a;
+}
+
+/* Затемнение между левой частью и постером - позволяет информации заходить на постер */
+.backdrop-dark-overlay {
+    position: absolute;
+    top: 0;
+    left: -5%; /* Начинается раньше, позволяя информации заходить на постер */
+    width: 55%; /* Увеличено для плавного перехода */
+    height: 100%;
+    background: linear-gradient(90deg, 
+        rgba(0, 0, 0, 0.95) 0%,
+        rgba(0, 0, 0, 0.85) 30%,
+        rgba(0, 0, 0, 0.7) 50%,
+        rgba(0, 0, 0, 0.4) 70%,
+        rgba(0, 0, 0, 0) 100%
+    );
+    pointer-events: none;
+}
+
+/* ИСПРАВЛЕННАЯ Иконка партнера на постере - УВЕЛИЧЕНА КАК И ДРУГИЕ */
+.partner-icon-on-backdrop {
+    position: absolute;
+    bottom: 25px;
+    right: 25px;
+    width: 55px;
+    height: 55px;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 12px;
+    padding: 0;
+    backdrop-filter: blur(15px);
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+/* Декоративный внутренний фон */
+.partner-icon-on-backdrop::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    z-index: 1;
+}
+
+/* Сама иконка - увеличенная */
+.partner-icon-on-backdrop img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(2.2); /* Такое же увеличение, как у других иконок */
+    position: relative;
+    z-index: 2;
+    filter: brightness(1.1);
+}
+
+/* Основной контент ниже */
+.movie-content-below {
+    max-width: 100%;
+    margin: 0;
+    padding: 20px 0;
+    width: 100%;
+}
+
+/* Контейнер для контента внутри */
+.description-section,
+.crew-section,
+.platforms-section,
+.similar-section {
+    width: 100%;
+    margin-bottom: 40px;
+}
+
+.section-heading {
+    font-size: 26px;
+    color: var(--text-primary);
+    margin-bottom: 25px;
+    font-weight: 700;
+    position: relative;
+    padding-bottom: 10px;
+}
+
+.section-heading::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+    border-radius: 2px;
+}
+
+/* Описание */
+.description-section {
+    margin-bottom: 40px;
+    padding: 30px;
+    background: var(--bg-card);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.description-text {
+    color: var(--text-secondary);
+    line-height: 1.8;
+    font-size: 16px;
+    font-weight: 400;
+}
+
+/* Съемочная группа */
+.crew-section {
+    margin-bottom: 40px;
+}
+
+.crew-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+.crew-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 25px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.crew-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 106, 43, 0.3);
+    transform: translateY(-2px);
+}
+
+.crew-title {
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.crew-value {
+    color: var(--text-primary);
+    font-size: 16px;
+    line-height: 1.6;
+    font-weight: 500;
+}
+
+/* Платформы для просмотра */
+.platforms-section {
+    margin-bottom: 50px;
+}
+
+/* Приближение платформ */
+.platforms-closer {
+    margin-top: -10px;
+}
+
+.platforms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    width: 100%;
+}
+
+.platform-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 25px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.platform-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, transparent, rgba(255, 106, 43, 0.05));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.platform-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+    box-shadow: 0 12px 35px rgba(255, 106, 43, 0.15);
+}
+
+.platform-card:hover::before {
+    opacity: 1;
+}
+
+/* ИСПРАВЛЕННЫЕ СТИЛИ ДЛЯ ИКОНОК ПАРТНЕРОВ */
+.platform-icon-wrapper {
+    width: 45px;
+    height: 45px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 8px;
+    overflow: hidden;
+}
+
+.platform-icon {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: scale(2.2);
+}
+
+.platform-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(1.1);
+}
+
+.platform-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    z-index: 1;
+}
+
+.platform-name {
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 18px;
+}
+
+.platform-action {
+    color: var(--accent);
+    font-size: 15px;
+    font-weight: 600;
+    transition: transform 0.3s ease;
+}
+
+.platform-card:hover .platform-action {
+    transform: translateX(3px);
+}
+
+/* Похожие фильмы */
+.similar-section {
+    margin-top: 60px;
+    padding-top: 40px;
+    border-top: 1px solid var(--border);
+}
+
+.loading-similar {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+}
+
+.spinner-small {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.no-similar-films {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+    font-style: italic;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border: 2px dashed rgba(255, 255, 255, 0.1);
+}
+
+/* Контейнер для похожих фильмов */
+.similar-movies-scroll {
+    position: relative;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow: visible;
+}
+
+.similar-scroll-container {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    overflow-y: visible;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 15px 0 35px 0;
+    margin: 0;
+}
+
+.similar-scroll-container::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+.similar-movie-card {
+    flex: 0 0 auto;
+    width: 200px;
+    position: relative;
+    height: 340px;
+}
+
+/* Стили для карточек похожих фильмов */
+.similar-movie-card .movie-card {
+    height: 300px;
+    margin-bottom: 10px;
+}
+
+.similar-movie-title {
+    margin-top: 10px;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    min-height: 40px;
+    padding: 0 5px;
+}
+
+/* Адаптивность */
+@media (max-width: 1200px) {
+    .movie-hero-wrapper {
+        height: 480px;
+    }
+    
+    .movie-hero-left {
+        max-width: 45%;
+        padding: 30px 30px 30px 40px;
+    }
+    
+    .movie-hero-right {
+        flex: 0 0 60%;
+    }
+    
+    .movie-title-fallback-new {
+        font-size: 42px;
+    }
+    
+    .movie-info-row-compact span {
+        font-size: 15px;
+    }
+    
+    .platform-icon {
+        transform: scale(2.0);
+    }
+    
+    .partner-icon-on-backdrop {
+        width: 50px;
+        height: 50px;
+    }
+}
+
+@media (max-width: 992px) {
+    .movie-hero-wrapper {
+        flex-direction: column;
+        height: auto;
+        min-height: 550px;
+        background: linear-gradient(to bottom, 
+            rgba(0, 0, 0, 0.95) 0%, 
+            rgba(0, 0, 0, 0.85) 30%, 
+            transparent 50%
+        );
+    }
+    
+    .movie-hero-left {
+        max-width: 100%;
+        padding: 30px 30px;
+        order: 2;
+        height: auto;
+        min-height: 250px;
+    }
+    
+    .movie-hero-right {
+        flex: 0 0 300px;
+        order: 1;
+    }
+    
+    .backdrop-dark-overlay {
+        width: 100%;
+        left: 0;
+        height: 50%;
+        background: linear-gradient(to bottom, 
+            rgba(0, 0, 0, 0.9) 0%,
+            rgba(0, 0, 0, 0.7) 25%,
+            rgba(0, 0, 0, 0.5) 40%,
+            rgba(0, 0, 0, 0.3) 60%,
+            rgba(0, 0, 0, 0) 100%
+        );
+    }
+    
+    .movie-title-fallback-new {
+        font-size: 38px;
+    }
+    
+    .partner-icon-on-backdrop {
+        width: 50px;
+        height: 50px;
+        bottom: 20px;
+        right: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .movie-hero-wrapper {
+        min-height: 500px;
+    }
+    
+    .movie-hero-left {
+        padding: 25px 20px;
+    }
+    
+    .movie-logo {
+        max-height: 70px;
+    }
+    
+    .movie-title-fallback-new {
+        font-size: 32px;
+    }
+    
+    .watch-btn-primary-new {
+        padding: 10px 25px;
+        font-size: 16px;
+        min-height: 45px;
+    }
+    
+    .movie-hero-right {
+        flex: 0 0 250px;
+    }
+    
+    .movie-info-row-compact {
+        gap: 5px;
+        font-size: 14px;
+    }
+    
+    .movie-info-row-compact span {
+        font-size: 14px;
+    }
+    
+    .dot-separator {
+        font-size: 16px;
+    }
+    
+    .rating-value {
+        font-size: 24px;
+    }
+    
+    .rating-star {
+        font-size: 22px;
+    }
+    
+    .section-heading {
+        font-size: 22px;
+    }
+    
+    .crew-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .platforms-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .description-section {
+        padding: 25px;
+    }
+    
+    .crew-card {
+        padding: 20px;
+    }
+    
+    .platform-card {
+        padding: 20px;
+    }
+    
+    .bookmark-btn-secondary-new {
+        padding: 8px 18px;
+        font-size: 14px;
+        min-height: 40px;
+    }
+    
+    .platform-icon {
+        transform: scale(1.8);
+    }
+    
+    .partner-icon-on-backdrop {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .partner-icon-on-backdrop img {
+        transform: scale(2.0);
+    }
+}
+
+@media (max-width: 576px) {
+    .movie-hero-wrapper {
+        min-height: 450px;
+    }
+    
+    .movie-hero-left {
+        padding: 20px 15px;
+    }
+    
+    .movie-title-fallback-new {
+        font-size: 28px;
+    }
+    
+    .movie-logo {
+        max-height: 50px;
+    }
+    
+    .rating-value {
+        font-size: 22px;
+    }
+    
+    .rating-star {
+        font-size: 20px;
+    }
+    
+    .watch-btn-primary-new {
+        padding: 8px 20px;
+        font-size: 15px;
+        min-height: 40px;
+    }
+    
+    .bookmark-btn-secondary-new {
+        padding: 6px 15px;
+        font-size: 13px;
+        min-height: 36px;
+    }
+    
+    .movie-hero-right {
+        flex: 0 0 200px;
+    }
+    
+    .movie-content-below {
+        padding: 10px 0;
+    }
+    
+    .section-heading {
+        font-size: 20px;
+    }
+    
+    .description-text {
+        font-size: 15px;
+    }
+    
+    .similar-movie-card {
+        width: 160px;
+        height: 280px;
+    }
+    
+    .similar-movie-card .movie-card {
+        height: 240px;
+    }
+    
+    .movie-info-row-compact {
+        flex-wrap: wrap;
+    }
+    
+    .platform-icon {
+        transform: scale(1.6);
+    }
+    
+    .partner-icon-on-backdrop {
+        width: 40px;
+        height: 40px;
+        bottom: 15px;
+        right: 15px;
+    }
+    
+    .partner-icon-on-backdrop img {
+        transform: scale(1.8);
+    }
+}
+
+@media (max-width: 400px) {
+    .movie-title-fallback-new {
+        font-size: 24px;
+    }
+    
+    .movie-hero-right {
+        flex: 0 0 180px;
+    }
+    
+    .movie-info-row-compact span {
+        font-size: 13px;
+    }
+    
+    .similar-movie-card {
+        width: 140px;
+        height: 250px;
+    }
+    
+    .similar-movie-card .movie-card {
+        height: 210px;
+    }
+    
+    .platform-icon {
+        transform: scale(1.4);
+    }
+    
+    .partner-icon-on-backdrop {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .partner-icon-on-backdrop img {
+        transform: scale(1.6);
+    }
+}
+/* Добавить в конец файла movie-detail.css */
+
+/* Возрастной рейтинг */
+.age-rating-badge {
+  background: rgba(0, 0, 0, 0.6);
+  color: #FFD700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  margin-left: 12px;
+}
+
+/* Контейнер для вторичных кнопок */
+.movie-secondary-actions {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Кнопка трейлер (уменьшенная копия кнопки сохранить) */
+.trailer-btn-secondary-new {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  border: 2px solid var(--border);
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+}
+
+.trailer-btn-secondary-new:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.trailer-btn-secondary-new svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Модальное окно для трейлера */
+.trailer-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 11000;
+  backdrop-filter: blur(5px);
+}
+
+.trailer-modal-content {
+  position: relative;
+  width: 90%;
+  max-width: 1000px;
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 40px 20px 20px;
+  border: 2px solid var(--accent);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.trailer-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 32px;
+  cursor: pointer;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.trailer-close-btn:hover {
+  background: rgba(255, 106, 43, 0.2);
+  color: var(--accent);
+}
+
+.trailer-video {
+  width: 100%;
+  height: auto;
+  max-height: 70vh;
+  border-radius: 8px;
+  outline: none;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .age-rating-badge {
+    font-size: 12px;
+    padding: 3px 6px;
+  }
+  
+  .movie-secondary-actions {
+    flex-direction: column;
+  }
+  
+  .bookmark-btn-secondary-new,
+  .trailer-btn-secondary-new {
+    padding: 8px 16px;
+    font-size: 14px;
+    min-height: 40px;
+  }
+  
+  .trailer-modal-content {
+    width: 95%;
+    padding: 30px 10px 10px;
+  }
+}
+
+@media (max-width: 576px) {
+  .trailer-btn-secondary-new svg,
+  .bookmark-btn-secondary-new svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+/* Мобильные стили для похожих фильмов */
+@media (max-width: 768px) {
+  .similar-movie-card {
+    width: 140px;
+    height: auto;
+  }
+  
+  .similar-movie-card .movie-card {
+    width: 140px;
+    height: auto;
+    margin-bottom: 5px;
+  }
+  
+  .similar-movie-card .movie-card-inner {
+    width: 100%;
+    height: auto;
+  }
+  
+  .similar-movie-card .movie-poster {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 2/3;
+    object-fit: cover;
+  }
+  
+  .similar-movie-title {
+    font-size: 12px;
+    min-height: 32px;
+    margin-top: 5px;
+  }
+  
+  /* Стили для случая, когда используется вертикальный плакат вместо горизонтального */
+  .movie-backdrop.poster-as-backdrop {
+    min-height: 400px;
+    object-fit: contain;
+    background-color: #0a0a0a;
+  }
+  
+  .movie-hero-wrapper {
+    min-height: auto;
+  }
+  
+  .movie-hero-right {
+    flex: 0 0 300px;
+  }
+  
+  .backdrop-container {
+    height: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .similar-movie-card {
+    width: 120px;
+  }
+  
+  .similar-movie-card .movie-card {
+    width: 120px;
+  }
+  
+  .similar-movie-title {
+    font-size: 11px;
+  }
+  
+  .movie-backdrop.poster-as-backdrop {
+    min-height: 350px;
+  }
+  
+  .movie-hero-right {
+    flex: 0 0 250px;
+  }
+}
+
+@media (max-width: 360px) {
+  .similar-movie-card {
+    width: 100px;
+  }
+  
+  .similar-movie-card .movie-card {
+    width: 100px;
+  }
+  
+  .movie-backdrop.poster-as-backdrop {
+    min-height: 300px;
+  }
+  
+  .movie-hero-right {
+    flex: 0 0 200px;
+  }
+}
+/* Стили для вертикального плаката на мобильных - ЗАТЕМНЕНИЕ ТОЛЬКО СНИЗУ ДО СЕРЕДИНЫ */
+@media (max-width: 768px) {
+  .movie-hero-wrapper.vertical-poster-mode {
+    flex-direction: column;
+    min-height: auto;
+  }
+  
+  .movie-hero-left.vertical-poster-content {
+    order: 2;
+    padding-top: 15px;
+    background: linear-gradient(to top, 
+      rgba(0,0,0,0.98) 0%, 
+      rgba(0,0,0,0.9) 30%,
+      rgba(0,0,0,0.9) 60%,
+      rgba(0,0,0,0.6) 90%,
+      rgba(0,0,0,0.1) 100%
+    );
+    margin-top: -80px;
+    position: relative;
+    z-index: 5;
+    border-radius: 25px 25px 0 0;
+  }
+  
+  .movie-hero-right.vertical-poster-right {
+    flex: 0 0 auto;
+    order: 1;
+    height: 500px;
+    position: relative;
+  }
+  
+  .backdrop-container {
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .movie-backdrop.poster-as-backdrop {
+    min-height: 500px;
+    object-fit: contain;
+    background-color: #0a0a0a;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* Затемнение только снизу до середины */
+  .backdrop-dark-overlay.vertical-poster-overlay {
+    background: linear-gradient(to bottom, 
+      rgba(0,0,0,0) 0%,
+      rgba(0,0,0,0) 30%,
+      rgba(0,0,0,0.1) 40%,
+      rgba(0,0,0,0.2) 45%,
+      rgba(0,0,0,0.3) 50%,
+      rgba(0,0,0,0.4) 55%,
+      rgba(0,0,0,0.5) 60%,
+      rgba(0,0,0,0.6) 70%,
+      rgba(0,0,0,0.7) 80%,
+      rgba(0,0,0,0.8) 90%,
+      rgba(0,0,0,0.9) 100%
+    );
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 2;
+  }
+  
+  /* Усиление в самом низу для плавного перехода */
+  .movie-hero-right.vertical-poster-right::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 120px;
+    background: linear-gradient(to top, 
+      rgba(0,0,0,0.7) 0%,
+      rgba(0,0,0,0.4) 40%,
+      rgba(0,0,0,0.1) 80%,
+      rgba(0,0,0,0) 100%
+    );
+    pointer-events: none;
+    z-index: 3;
+  }
+  
+  .movie-hero-actions-compact.vertical-poster-actions {
+    margin-top: 10px;
+    padding-bottom: 15px;
+    position: relative;
+    z-index: 10;
+  }
+  
+  .partner-icon-on-backdrop.vertical-poster-icon {
+    bottom: 25px;
+    right: 20px;
+    z-index: 10;
+    width: 45px;
+    height: 45px;
+    position: absolute;
+  }
+}
+
+@media (max-width: 480px) {
+  .movie-hero-right.vertical-poster-right {
+    height: 420px;
+  }
+  
+  .movie-backdrop.poster-as-backdrop {
+    min-height: 420px;
+  }
+  
+  .backdrop-dark-overlay.vertical-poster-overlay {
+    background: linear-gradient(to bottom, 
+      rgba(0,0,0,0) 0%,
+      rgba(0,0,0,0) 25%,
+      rgba(0,0,0,0.1) 35%,
+      rgba(0,0,0,0.2) 40%,
+      rgba(0,0,0,0.3) 45%,
+      rgba(0,0,0,0.4) 50%,
+      rgba(0,0,0,0.5) 60%,
+      rgba(0,0,0,0.6) 70%,
+      rgba(0,0,0,0.7) 80%,
+      rgba(0,0,0,0.8) 90%,
+      rgba(0,0,0,0.9) 100%
+    );
+  }
+}
+
+@media (max-width: 360px) {
+  .movie-hero-right.vertical-poster-right {
+    height: 360px;
+  }
+  
+  .movie-backdrop.poster-as-backdrop {
+    min-height: 360px;
+  }
+}
+
+/* Упрощенная версия - только нижнее затемнение */
+.vertical-poster-overlay-bottom-only {
+  background: linear-gradient(to bottom, 
+    rgba(0,0,0,0) 0%,
+    rgba(0,0,0,0) 40%,
+    rgba(0,0,0,0.2) 50%,
+    rgba(0,0,0,0.4) 60%,
+    rgba(0,0,0,0.6) 70%,
+    rgba(0,0,0,0.8) 85%,
+    rgba(0,0,0,0.95) 100%
+  ) !important;
+}
+/* Добавьте в конец файла movie-detail.css */
+
+/* Стили для кнопки сохранения на детальной странице */
+.bookmark-btn-secondary-new.saved {
+    background: rgba(255, 106, 43, 0.2);
+    border-color: #FF6A2B;
+    color: #FF6A2B;
+}
+
+.bookmark-btn-secondary-new.saved svg {
+    fill: #FF6A2B;
+    stroke: #FF6A2B;
+}
+
+.bookmark-btn-secondary-new.saved:hover {
+    background: rgba(255, 106, 43, 0.3);
+}

@@ -1,0 +1,36 @@
+:root {
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-panel: rgba(8, 8, 8, 0.95);
+  --bg-card: #0c0c0c00;
+  --bg-modal: #151515;
+  --accent: #FF6A2B;
+  --accent-hover: #FF8A5C;
+  --accent-muted: rgba(255, 106, 43, 0.7);
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0a0;
+  --text-muted: #666666;
+  --border: #0c0c0cc5;
+  --border-light: #4a4a4d;
+  --border-orange: rgba(255, 106, 43, 0.3);
+  --border-panel: rgba(141, 73, 27, 0.39);
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --max-container-width: 1100px;
+  
+  /* ВОЗВРАЩАЕМ ПЕРЕМЕННУЮ TRANSITION */
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Новые переменные для фоновых эффектов */
+  --glow-color: rgba(255, 106, 43, 0.1);
+  --dot-color: rgba(255, 106, 43, 0.3);
+  --grid-color: rgba(255, 106, 43, 0.05);
+  
+  /* Добавляем для сайдбаров */
+  --sidebar-bg: linear-gradient(180deg, 
+    rgba(10, 10, 10, 0.98) 0%,
+    rgba(0, 0, 0, 0.95) 100%
+  );
+}

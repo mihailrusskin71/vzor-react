@@ -1,0 +1,332 @@
+/* Filters Panel Container */
+.filters-panel-container {
+  width: 100%;
+  margin: 20px 0;
+  position: relative;
+}
+
+/* Toggle Button - для всех устройств */
+.filters-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: rgba(255, 106, 43, 0.1);
+  border: 1px solid rgba(255, 106, 43, 0.3);
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.filters-toggle-btn:hover {
+  background: rgba(255, 106, 43, 0.2);
+  border-color: #FF6A2B;
+  transform: translateY(-2px);
+}
+
+.filters-toggle-btn.active {
+  background: rgba(255, 106, 43, 0.2);
+  border-color: #FF6A2B;
+}
+
+.filters-toggle-btn.has-filters {
+  border-color: #FF6A2B;
+  box-shadow: 0 0 0 2px rgba(255, 106, 43, 0.3);
+}
+
+.filters-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: #FF6A2B;
+}
+
+.filters-toggle-text {
+  flex: 1;
+  text-align: left;
+}
+
+.filters-badge {
+  color: #FF6A2B;
+  font-size: 24px;
+  line-height: 1;
+  margin-left: auto;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Панель фильтров */
+.filters-panel {
+  background: rgba(26, 26, 36, 0.98);
+  border-radius: 16px;
+  padding: 25px;
+  margin: 10px 0 20px 0;
+  border: 1px solid rgba(255, 106, 43, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
+}
+
+/* Сетка фильтров */
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+/* Для сериалов - делаем компактнее */
+.filters-grid.with-seasons {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+@media (max-width: 1200px) {
+  .filters-grid.with-seasons {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .filters-grid,
+  .filters-grid.with-seasons {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+/* Элемент фильтра */
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-item label {
+  font-size: 13px;
+  color: #aaa;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-item select {
+  padding: 12px 14px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid #444;
+  border-radius: 10px;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+}
+
+.filter-item select:hover {
+  border-color: #FF6A2B;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.filter-item select:focus {
+  outline: none;
+  border-color: #FF6A2B;
+  box-shadow: 0 0 0 3px rgba(255, 106, 43, 0.2);
+}
+
+.filter-item select option {
+  background: #1a1a24;
+  color: white;
+  padding: 10px;
+}
+
+/* Кнопки действий */
+.filters-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+  border-top: 1px solid #444;
+  padding-top: 20px;
+  margin-top: 10px;
+}
+
+.apply-btn,
+.reset-btn {
+  padding: 14px 28px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.apply-btn {
+  background: #FF6A2B;
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 106, 43, 0.3);
+}
+
+.apply-btn:hover {
+  background: #ff853d;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 106, 43, 0.4);
+}
+
+.reset-btn {
+  background: transparent;
+  border: 1px solid #444;
+  color: #aaa;
+}
+
+.reset-btn:hover {
+  border-color: #FF6A2B;
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* НОВЫЕ активные фильтры (chip'ы) */
+.active-filters {
+  margin: 15px 0 5px;
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.filter-chip {
+  background: rgba(255, 106, 43, 0.15);
+  border: 1px solid rgba(255, 106, 43, 0.3);
+  color: #FF6A2B;
+  padding: 8px 16px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  transition: all 0.2s ease;
+}
+
+.filter-chip:hover {
+  background: rgba(255, 106, 43, 0.25);
+  border-color: #FF6A2B;
+  transform: translateY(-2px);
+}
+
+.filter-chip button {
+  background: none;
+  border: none;
+  color: #FF6A2B;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.filter-chip button:hover {
+  transform: scale(1.2);
+  color: white;
+}
+
+.clear-filters-btn {
+  background: transparent;
+  border: 1px solid #444;
+  color: #aaa;
+  padding: 8px 16px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clear-filters-btn:hover {
+  border-color: #FF6A2B;
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Мобильные стили */
+@media (max-width: 768px) {
+  .filters-toggle-btn {
+    padding: 14px 18px;
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
+  
+  .filters-panel {
+    padding: 20px;
+    margin: 5px 0 15px;
+    border-radius: 14px;
+  }
+  
+  .filter-item select {
+    padding: 14px;
+    font-size: 15px;
+  }
+  
+  .filters-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .apply-btn,
+  .reset-btn {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+  }
+  
+  .filter-chip {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  
+  .filter-chips {
+    gap: 8px;
+  }
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 480px) {
+  .filters-toggle-btn {
+    padding: 12px 16px;
+  }
+  
+  .filters-panel {
+    padding: 15px;
+  }
+  
+  .filter-item select {
+    padding: 12px;
+  }
+  
+  .filter-chip {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+}

@@ -1,0 +1,36 @@
+
+.loading-spinner,
+.no-content,
+.error-message {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+
+.loading-spinner {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.no-content p,
+.error-message h2 {
+  margin-bottom: 20px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.content-container {
+  width: 100%;
+  max-width: 1131px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.page-content {
+  display: block;
+  width: 100%;
+}

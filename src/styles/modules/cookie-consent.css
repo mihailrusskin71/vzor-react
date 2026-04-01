@@ -1,0 +1,242 @@
+/* src/styles/modules/cookie-consent.css */
+
+/* Затемнение фона */
+.cookie-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  z-index: 10000;
+  animation: overlayFadeIn 0.3s ease forwards;
+}
+
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+}
+
+/* Основные стили баннера */
+.cookie-consent {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 550px;
+  width: 90%;
+  background: #1a1a24;
+  border: 2px solid #754837b6;
+  border-radius: 20px;
+  padding: 28px;
+  z-index: 10001;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  animation: consentSlideUp 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.cookie-consent.closing {
+  animation: consentSlideDown 0.3s ease forwards;
+}
+
+@keyframes consentSlideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes consentSlideDown {
+  from {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+}
+
+/* Заголовок и текст - БЕЛЫЙ ЦВЕТ */
+.cookie-consent-title {
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cookie-consent-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.cookie-consent-text {
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+  opacity: 0.95;
+}
+
+.cookie-consent-text strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.cookie-consent-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.cookie-consent-link {
+  color: #FF6A2B;
+  font-size: 13px;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.cookie-consent-link:hover {
+  color: #ff8250;
+  text-decoration: underline;
+}
+
+.cookie-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.cookie-btn {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.cookie-btn.accept {
+  background: #FF6A2B;
+  color: white;
+}
+
+.cookie-btn.accept:hover {
+  background: #ff8250;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 106, 43, 0.4);
+}
+
+.cookie-btn.reject {
+  background: transparent;
+  border: 1px solid #666;
+  color: #aaa;
+}
+
+.cookie-btn.reject:hover {
+  border-color: #FF6A2B;
+  color: white;
+  background: rgba(255, 106, 43, 0.1);
+}
+
+/* Мобильные стили - баннер внизу по центру */
+@media (max-width: 768px) {
+  .cookie-consent {
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 500px;
+    padding: 20px;
+    border-radius: 26px;
+  }
+  
+  .cookie-consent.closing {
+    animation: consentSlideDownMobile 0.3s ease forwards;
+  }
+  
+  @keyframes consentSlideDownMobile {
+    from {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateX(-50%) translateY(100px);
+    }
+  }
+  
+  .cookie-consent-title {
+    font-size: 18px;
+  }
+  
+  .cookie-consent-text {
+    font-size: 13px;
+  }
+  
+  .cookie-consent-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .cookie-consent-link {
+    text-align: center;
+    font-size: 12px;
+  }
+  
+  .cookie-buttons {
+    width: 100%;
+    justify-content: stretch;
+  }
+  
+  .cookie-btn {
+    flex: 1;
+    text-align: center;
+    padding: 12px 20px;
+  }
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 480px) {
+  .cookie-consent {
+    bottom: 15px;
+    width: calc(100% - 30px);
+    padding: 16px;
+    border-radius: 20px;
+  }
+  
+  .cookie-consent-title {
+    font-size: 16px;
+  }
+  
+  .cookie-consent-text {
+    font-size: 12px;
+  }
+  
+  .cookie-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+}

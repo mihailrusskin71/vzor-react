@@ -1,0 +1,297 @@
+/* src/styles/modules/partners-carousel.css */
+.partners-carousel-section {
+  margin: 40px 0 50px;
+  padding: 0;
+  width: 100%;
+  position: relative;
+}
+
+/* Основной контейнер */
+.partners-carousel-container {
+  position: relative;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 30px 0;
+  overflow: hidden;
+}
+
+/* Контейнер карусели */
+.partners-carousel {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* БАЗОВЫЕ СТИЛИ ВСЕХ ПЛАКАТОВ */
+.partner-card {
+  position: absolute;
+  transition: all 0.5s ease;
+  overflow: visible;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border-radius: 4px;
+  border: none;
+  box-shadow: none;
+}
+
+.partner-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 20px;
+  border: 1px solid rgba(200, 200, 210, 0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ЦЕНТРАЛЬНЫЙ ПЛАКАТ - БОЛЬШОЙ */
+.partner-card.center {
+  width: 512px;
+  height: 341px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  opacity: 1;
+  filter: brightness(1);
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.partner-card.center .partner-image {
+  border: 1px solid rgba(220, 220, 230, 0.25);
+  box-shadow: 0 40px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ЛЕВЫЙ ПЛАКАТ - МЕНЬШЕ И ЗАТЕМНЕННЫЙ */
+.partner-card.left {
+  width: 384px;
+  height: 256px;
+  left: calc(50% - 512px - 30px);
+  opacity: 0.6;
+  filter: brightness(0.7) blur(1px);
+  z-index: 5;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.partner-card.left .partner-image {
+  border: 1px solid rgba(180, 180, 190, 0.1);
+  box-shadow: 0 20px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* ПРАВЫЙ ПЛАКАТ - МЕНЬШЕ И ЗАТЕМНЕННЫЙ */
+.partner-card.right {
+  width: 384px;
+  height: 256px;
+  left: calc(50% + 30px + 130px);
+  opacity: 0.6;
+  filter: brightness(0.7) blur(1px);
+  z-index: 5;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.partner-card.right .partner-image {
+  border: 1px solid rgba(180, 180, 190, 0.1);
+  box-shadow: 0 20px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* ЭФФЕКТ НАВЕДЕНИЯ - ТОЛЬКО ДЛЯ ПК */
+@media (min-width: 769px) {
+  .partner-card.center:hover {
+    transform: translate(-50%, -50%) scale(1.03);
+    z-index: 15;
+  }
+
+  .partner-card.center:hover .partner-image {
+    border: 1px solid rgba(230, 230, 240, 0.4);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  }
+
+  .partner-card.left:hover,
+  .partner-card.right:hover {
+    transform: translateY(-50%) scale(1.03);
+    opacity: 0.7;
+    filter: brightness(0.75) blur(0.5px);
+    z-index: 8;
+  }
+
+  .partner-card.left:hover .partner-image,
+  .partner-card.right:hover .partner-image {
+    border: 1px solid rgba(200, 200, 210, 0.25);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* КНОПКИ НАВИГАЦИИ - ТОЛЬКО ДЛЯ ПК */
+.carousel-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.65);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  color: white;
+  width: 50px;
+  height: 80px;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 20;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.partners-carousel-container:hover .carousel-nav-btn {
+  opacity: 0.7;
+  pointer-events: auto;
+}
+
+.carousel-nav-btn:hover {
+  background: rgba(0, 0, 0, 0.8);
+  border-color: rgba(255, 255, 255, 0.25);
+  opacity: 0.9;
+  transform: translateY(-50%) scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.prev-btn {
+  left: 20px;
+}
+
+.next-btn {
+  right: 20px;
+}
+
+.nav-arrow {
+  font-size: 32px;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Индикаторы */
+.carousel-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 30px;
+  position: relative;
+  z-index: 5;
+}
+
+.indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.indicator:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.indicator.active {
+  background: var(--accent);
+  transform: scale(1.2);
+  box-shadow: 0 0 10px rgba(255, 106, 43, 0.5);
+}
+
+/* МОБИЛЬНЫЕ СТИЛИ */
+@media (max-width: 768px) {
+  .partners-carousel-section {
+    margin: 20px 0 30px;
+  }
+  
+  .partners-carousel-container {
+    padding: 0 0 5px 0;
+  }
+  
+  .partners-carousel {
+    height: 280px;
+  }
+  
+  .partner-card.center {
+    width: 95%;
+    height: auto;
+    max-width: 500px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  
+  .partner-card.center .partner-image {
+    width: 100%;
+    height: auto;
+    border-radius: 16px;
+    border: 1px solid rgba(220, 220, 230, 0.3);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  .partner-card.left,
+  .partner-card.right {
+    display: none;
+  }
+  
+  .carousel-indicators {
+    margin-top: 10px;
+    gap: 12px;
+  }
+  
+  .indicator {
+    width: 12px;
+    height: 12px;
+    margin: 0 2px;
+  }
+  
+  .carousel-nav-btn {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .partners-carousel {
+    height: 240px;
+  }
+  
+  .partner-card.center .partner-image {
+    border-radius: 14px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  }
+  
+  .carousel-indicators {
+    margin-top: 8px;
+    gap: 10px;
+  }
+  
+  .indicator {
+    width: 10px;
+    height: 10px;
+  }
+}
+
+@media (max-width: 360px) {
+  .partners-carousel {
+    height: 200px;
+  }
+  
+  .partner-card.center .partner-image {
+    border-radius: 12px;
+  }
+  
+  .carousel-indicators {
+    margin-top: 5px;
+  }
+}

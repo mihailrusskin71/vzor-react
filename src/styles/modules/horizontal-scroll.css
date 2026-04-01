@@ -1,0 +1,385 @@
+/* horizontal-scroll.css - обновленный с новыми кнопками */
+
+/* ОСНОВНОЙ КОНТЕЙНЕР - 100% ширины */
+.horizontal-scroll-container {
+  position: relative;
+  width: 100%;
+  overflow: visible;
+}
+
+/* ГОРИЗОНТАЛЬНЫЙ СКРОЛЛ */
+.horizontal-scroll {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  margin: 0;
+  width: 100%;
+  padding: 9px 0 20px 0;
+  overflow-y: visible;
+}
+
+.horizontal-scroll::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* НОВЫЕ КНОПКИ ПРОКРУТКИ - СТИЛЬ КАК В КАРУСЕЛИ */
+.custom-scroll-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  width: 44px;
+  height: 70px;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.horizontal-scroll-container:hover .custom-scroll-btn {
+  opacity: 0.8;
+  pointer-events: auto;
+}
+
+.custom-scroll-btn:hover {
+  background: rgba(0, 0, 0, 0.85);
+  border-color: rgba(255, 255, 255, 0.3);
+  opacity: 1;
+  transform: translateY(-50%) scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+}
+
+/* ПОЗИЦИОНИРОВАНИЕ КНОПОК */
+.custom-scroll-btn.left {
+  left: 10px;
+}
+
+.custom-scroll-btn.right {
+  right: 10px;
+}
+
+/* СТРЕЛКИ В КНОПКАХ */
+.nav-arrow {
+  font-size: 24px;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  transition: transform 0.2s ease;
+}
+
+.custom-scroll-btn:hover .nav-arrow {
+  transform: scale(1.1);
+}
+
+/* СТИЛЬ ДЛЯ КАРТОЧЕК */
+.custom-row-movie-card {
+  flex: 0 0 auto;
+  width: 200px;
+  height: 300px;
+}
+
+.movie-card {
+  flex: 0 0 auto;
+  width: 200px;
+  height: 300px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: var(--transition);
+  cursor: pointer;
+  position: relative;
+  border: 1px solid var(--border);
+}
+
+.movie-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--accent);
+  position: relative;
+  z-index: 5;
+}
+
+.movie-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* СЕКЦИИ РЯДОВ */
+.custom-row-section {
+  margin: 10px 0; /* УМЕНЬШЕНО с 15px до 10px */
+  width: 100%;
+  position: relative;
+}
+
+/* ЗАГОЛОВОК РЯДА */
+.section-header {
+  padding: 0;
+  margin-bottom: 4px; /* УМЕНЬШЕНО с 8px до 4px */
+}
+
+.section-header-title {
+  font-size: 24px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: color 0.2s;
+  margin: 0;
+  padding: 0;
+}
+
+.section-header-title:hover {
+  color: var(--accent);
+}
+
+/* Кнопка "Посмотреть все" */
+.custom-row-view-all-card {
+  flex: 0 0 auto;
+  width: 200px;
+  height: 300px;
+  cursor: pointer;
+}
+
+.custom-row-view-all-card .movie-card-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  box-shadow: 
+      0 10px 30px rgba(0, 0, 0, 0.5),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+      inset 0 20px 40px rgba(255, 255, 255, 0.05);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.custom-row-view-all-card:hover .movie-card-inner {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 
+      0 20px 40px rgba(0, 0, 0, 0.7),
+      0 0 0 1px rgba(255, 255, 255, 0.2),
+      inset 0 20px 40px rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #333333, #222222);
+}
+
+.custom-view-all-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  z-index: 1;
+}
+
+.custom-view-all-icon {
+  font-size: 48px;
+  font-weight: 300;
+  margin-bottom: 15px;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+.custom-view-all-text {
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  padding: 0 15px;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.custom-row-view-all-card:hover .custom-view-all-icon {
+  transform: scale(1.2);
+  opacity: 1;
+  color: var(--accent);
+}
+
+.custom-row-view-all-card:hover .custom-view-all-text {
+  opacity: 1;
+  color: white;
+}
+
+/* Анимация появления кнопок */
+@keyframes fadeInScrollButtons {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) scale(0.95);
+  }
+  to {
+    opacity: 0.8;
+    transform: translateY(-50%) scale(1);
+  }
+}
+
+.horizontal-scroll-container:hover .custom-scroll-btn {
+  animation: fadeInScrollButtons 0.3s ease forwards;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .custom-scroll-btn {
+    display: none;
+  }
+  
+  .section-header {
+    padding: 0;
+    margin-bottom: 2px; /* ЕЩЕ МЕНЬШЕ НА МОБИЛЬНЫХ */
+  }
+  
+  .custom-row-section {
+    margin: 8px 0; /* УМЕНЬШЕНО ДЛЯ МОБИЛЬНЫХ */
+  }
+  
+  .custom-row-movie-card,
+  .custom-row-view-all-card {
+    width: 160px; /* УВЕЛИЧЕНО */
+    height: auto;
+  }
+  
+  .movie-card {
+    width: 160px; /* УВЕЛИЧЕНО */
+    height: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .section-header {
+    padding: 0;
+    margin-bottom: 2px;
+  }
+  
+  .custom-row-section {
+    margin: 6px 0; /* ЕЩЕ МЕНЬШЕ */
+  }
+  
+  .custom-row-movie-card,
+  .custom-row-view-all-card {
+    width: 150px; /* УВЕЛИЧЕНО */
+    height: auto;
+  }
+  
+  .movie-card {
+    width: 150px; /* УВЕЛИЧЕНО */
+    height: auto;
+  }
+}
+
+/* Добавить в конец файла horizontal-scroll.css */
+
+/* Стили для скролла с похожими фильмами */
+.similar-movies-scroll .horizontal-scroll {
+  padding: 9px 0 10px 0;
+}
+
+.similar-movies-scroll .custom-scroll-btn {
+  width: 40px;
+  height: 60px;
+}
+
+@media (max-width: 768px) {
+  .similar-movies-scroll .horizontal-scroll {
+    padding: 5px 0 5px 0;
+  }
+  
+  .similar-movies-scroll .custom-scroll-btn {
+    display: none;
+  }
+}
+
+/* Стили для карточек в рядах на мобильных */
+.custom-row-movie-card {
+  flex: 0 0 auto;
+  width: 200px;
+}
+
+@media (max-width: 768px) {
+  .custom-row-movie-card {
+    width: 160px; /* УВЕЛИЧЕНО */
+  }
+  
+  .custom-row-movie-card .movie-card {
+    width: 160px; /* УВЕЛИЧЕНО */
+    margin-bottom: 0;
+  }
+  
+  .custom-row-view-all-card {
+    width: 160px; /* УВЕЛИЧЕНО */
+    height: auto;
+    aspect-ratio: 2/3;
+    background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+    border-radius: 8px;
+  }
+  
+  .custom-view-all-placeholder {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+  }
+  
+  .custom-view-all-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+  }
+  
+  .custom-view-all-text {
+    font-size: 12px;
+    text-align: center;
+    color: #888;
+  }
+}
+
+@media (max-width: 480px) {
+  .custom-row-movie-card {
+    width: 150px; /* УВЕЛИЧЕНО */
+  }
+  
+  .custom-row-movie-card .movie-card {
+    width: 150px; /* УВЕЛИЧЕНО */
+  }
+  
+  .custom-row-view-all-card {
+    width: 150px; /* УВЕЛИЧЕНО */
+  }
+}
+
+@media (max-width: 360px) {
+  .custom-row-movie-card {
+    width: 140px; /* УВЕЛИЧЕНО */
+  }
+  
+  .custom-row-movie-card .movie-card {
+    width: 140px; /* УВЕЛИЧЕНО */
+  }
+  
+  .custom-row-view-all-card {
+    width: 140px; /* УВЕЛИЧЕНО */
+  }
+}
