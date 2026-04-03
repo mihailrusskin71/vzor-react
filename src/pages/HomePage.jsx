@@ -70,5 +70,4 @@ function HomePage({ films, customRows, filmManager }) {
     </div>
   );
 }
-
 export default HomePage;
