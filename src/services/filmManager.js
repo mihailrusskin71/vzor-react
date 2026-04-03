@@ -1,10 +1,12 @@
+// src/services/filmManager.js
 import { PARTNERS } from '../utils/constants';
 
 class FilmManager {
   constructor() {
-    this.SUPABASE_URL = 'https://qolbgrvlkadqnfnprbgr.supabase.co';
-    this.SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvbGJncnZsa2FkcW5mbnByYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NzUwMTAsImV4cCI6MjA3ODU1MTAxMH0.XYg5fhJ7ve_UVhAg_fzk4oJFEpje6zb4To-7DIhDgws';
-    this.POISK_KINO_API_KEY = "QHABHFK-P68MM3H-GQFQB7D-1VRGXYQ";
+    // API через прокси (без прямых ключей!)
+    this.API_URL = '/api';
+    this.SEARCH_API_URL = '/functions/v1/search-movie';
+    
     this.currentMovieId = null;
     this.films = [];
     this.customRows = {};
@@ -20,7 +22,7 @@ class FilmManager {
       if (cachedFilms) {
         this.films = JSON.parse(cachedFilms).map(film => this.normalizeFilmData(film));
         if (this.films.length > 0) {
-          console.log(`Фильмов в кэше: ${this.films.length}`);
+          console.log(`📦 Фильмов в кэше: ${this.films.length}`);
         }
       }
       
@@ -28,7 +30,7 @@ class FilmManager {
       if (cachedRows) {
         this.customRows = JSON.parse(cachedRows);
         if (Object.keys(this.customRows).length > 0) {
-          console.log(`Рядов в кэше: ${Object.keys(this.customRows).length}`);
+          console.log(`📦 Рядов в кэше: ${Object.keys(this.customRows).length}`);
         }
       }
     } catch (error) {
@@ -44,7 +46,6 @@ class FilmManager {
     }
     
     await this.cleanupOrphanedFilmReferences();
-    
     await this.loadFreshDataInBackground();
     
     console.timeEnd('Инициализация FilmManager');
@@ -54,8 +55,8 @@ class FilmManager {
   async loadFreshDataInBackground() {
     try {
       const [films, rows] = await Promise.allSettled([
-        this.loadFilmsFromSupabase(),
-        this.loadCustomRowsFromSupabase()
+        this.loadFilmsFromAPI(),
+        this.loadCustomRowsFromAPI()
       ]);
       
       if (films.status === 'fulfilled' && films.value && films.value.length > 0) {
@@ -71,14 +72,11 @@ class FilmManager {
     }
   }
   
-  async loadFilmsFromSupabase() {
+  // ============ API METHODS (через прокси, без ключей) ============
+  
+  async loadFilmsFromAPI() {
     try {
-      const response = await fetch(`${this.SUPABASE_URL}/rest/v1/films?select=*&order=created_at.desc`, {
-        headers: {
-          'apikey': this.SUPABASE_KEY,
-          'Authorization': `Bearer ${this.SUPABASE_KEY}`
-        }
-      });
+      const response = await fetch(`${this.API_URL}/films?select=*&order=created_at.desc`);
       
       if (response.ok) {
         const films = await response.json();
@@ -92,21 +90,16 @@ class FilmManager {
     }
   }
   
-  async loadCustomRowsFromSupabase() {
+  async loadCustomRowsFromAPI() {
     try {
-      const response = await fetch(`${this.SUPABASE_URL}/rest/v1/custom_rows?select=*&order=created_at.desc`, {
-        headers: {
-          'apikey': this.SUPABASE_KEY,
-          'Authorization': `Bearer ${this.SUPABASE_KEY}`
-        }
-      });
+      const response = await fetch(`${this.API_URL}/custom_rows?select=*&order=created_at.desc`);
       
       if (response.ok) {
         const rows = await response.json();
-        const supabaseRows = {};
+        const apiRows = {};
         
         rows.forEach(row => {
-          supabaseRows[row.id] = {
+          apiRows[row.id] = {
             id: row.id,
             name: row.name,
             pageType: row.page_type || 'all',
@@ -120,7 +113,7 @@ class FilmManager {
           };
         });
         
-        return supabaseRows;
+        return apiRows;
       }
     } catch (error) {
       console.error('Ошибка загрузки рядов:', error);
@@ -128,18 +121,260 @@ class FilmManager {
     }
   }
   
-  syncCustomRows(supabaseRows) {
+  async saveCustomRowToAPI(rowData) {
+    try {
+      const response = await fetch(`${this.API_URL}/custom_rows`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify({
+          id: rowData.id,
+          name: rowData.name,
+          page_type: rowData.pageType,
+          max_row_items: rowData.maxRowItems,
+          row_items: rowData.rowItems,
+          modal_items: rowData.modalItems,
+          is_global: rowData.isGlobal,
+          user_id: 'admin',
+          created_at: rowData.createdAt,
+          updated_at: rowData.updatedAt
+        })
+      });
+      
+      return response.ok;
+    } catch (error) {
+      console.error('Ошибка сохранения ряда:', error);
+      return false;
+    }
+  }
+  
+  async updateCustomRowInAPI(rowId, updates) {
+    try {
+      const apiUpdates = {};
+      
+      if (updates.rowItems !== undefined) apiUpdates.row_items = updates.rowItems;
+      if (updates.modalItems !== undefined) apiUpdates.modal_items = updates.modalItems;
+      if (updates.name !== undefined) apiUpdates.name = updates.name;
+      if (updates.pageType !== undefined) apiUpdates.page_type = updates.pageType;
+      if (updates.maxRowItems !== undefined) apiUpdates.max_row_items = updates.maxRowItems;
+      
+      apiUpdates.updated_at = new Date().toISOString();
+      
+      const response = await fetch(`${this.API_URL}/custom_rows?id=eq.${rowId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(apiUpdates)
+      });
+      
+      return response.ok;
+    } catch (error) {
+      console.error('Ошибка обновления ряда:', error);
+      return false;
+    }
+  }
+  
+  async deleteCustomRowFromAPI(rowId) {
+    try {
+      const response = await fetch(`${this.API_URL}/custom_rows?id=eq.${rowId}`, {
+        method: 'DELETE'
+      });
+      
+      return response.ok;
+    } catch (error) {
+      console.error('Ошибка удаления ряда:', error);
+      return false;
+    }
+  }
+  
+  async saveFilmToAPI(film) {
+    try {
+      const filmData = {
+        title: film.title || '',
+        year: parseInt(film.year) || new Date().getFullYear(),
+        rating: parseFloat(film.rating) || 7.0,
+        genre: film.genre || 'Фильм',
+        duration: film.duration || '120 мин',
+        country: film.country || 'Россия',
+        partner: film.partner || 'okko',
+        img: film.img || this.generatePlaceholder(film.title),
+        description: film.description || `Фильм "${film.title}"`,
+        director: film.director || 'Режиссер',
+        actors: film.actors || 'Актеры',
+        content_type: film.contentType || 'movie',
+        seasons: parseInt(film.seasons) || 1,
+        episodes: parseInt(film.episodes) || 1,
+        kp_id: film.kpId || null,
+        featured_data: film.featuredRows || [],
+        partner_data: film.partnerLinks || {},
+        tags: film.tags || [],
+        reviews: film.reviews || [],
+        user_ratings: film.userRatings || [],
+        backdrop_url: film.backdropUrl || null,
+        age_rating: film.ageRating || '16+',
+        trailer_url: film.trailerUrl || null
+      };
+      
+      Object.keys(filmData).forEach(key => {
+        if (filmData[key] === undefined) delete filmData[key];
+      });
+      
+      const response = await fetch(`${this.API_URL}/films`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(filmData)
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Ошибка ответа API:', response.status, errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+      
+      const result = await response.json();
+      const normalizedFilm = this.normalizeFilmData(result[0]);
+      
+      this.films.unshift(normalizedFilm);
+      localStorage.setItem('vzorkino_films_cache', JSON.stringify(this.films));
+      
+      return normalizedFilm;
+    } catch (error) {
+      console.error('Ошибка сохранения фильма:', error);
+      throw error;
+    }
+  }
+  
+  async updateFilmInAPI(filmId, updates) {
+    try {
+      const apiUpdates = {};
+      Object.keys(updates).forEach(key => {
+        if (key === 'contentType') apiUpdates.content_type = updates[key];
+        else if (key === 'partnerLinks') apiUpdates.partner_data = updates[key];
+        else if (key === 'userRatings') apiUpdates.user_ratings = updates[key];
+        else if (key === 'featuredRows') apiUpdates.featured_data = updates[key];
+        else if (key === 'ageRating') apiUpdates.age_rating = updates[key];
+        else if (key === 'trailerUrl') apiUpdates.trailer_url = updates[key];
+        else apiUpdates[key] = updates[key];
+      });
+      
+      const response = await fetch(`${this.API_URL}/films?id=eq.${filmId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ...apiUpdates,
+          updated_at: new Date().toISOString()
+        })
+      });
+      
+      return response.ok;
+    } catch (error) {
+      console.error('Ошибка обновления:', error);
+      return false;
+    }
+  }
+  
+  async deleteFilmFromAPI(filmId) {
+    try {
+      const response = await fetch(`${this.API_URL}/films?id=eq.${filmId}`, {
+        method: 'DELETE'
+      });
+      
+      return response.ok;
+    } catch (error) {
+      console.error('Ошибка удаления фильма:', error);
+      return false;
+    }
+  }
+  
+  // ============ ПОИСК ЧЕРЕЗ ПРОКСИ ============
+  
+  async searchPoiskKino(title, year = null, contentType = "movie") {
+    try {
+      let searchUrl = `${this.SEARCH_API_URL}/search?query=${encodeURIComponent(title)}`;
+      if (year) searchUrl += `&year=${year}`;
+      searchUrl += `&type=${contentType}`;
+      
+      const searchResponse = await fetch(searchUrl);
+      
+      if (!searchResponse.ok) {
+        throw new Error(`HTTP error! status: ${searchResponse.status}`);
+      }
+      
+      const searchData = await searchResponse.json();
+      
+      if (searchData.docs && searchData.docs.length > 0) {
+        let bestMatch = searchData.docs[0];
+        
+        const typeMap = {
+          'movie': 'movie',
+          'series': 'tv-series',
+          'cartoon': 'animated-series'
+        };
+        const apiType = typeMap[contentType] || 'movie';
+        
+        const typeMatches = searchData.docs.filter(movie => movie.type === apiType);
+        if (typeMatches.length > 0) bestMatch = typeMatches[0];
+        
+        if (year) {
+          const exactYearMatch = searchData.docs.find(movie => movie.year == year);
+          if (exactYearMatch) bestMatch = exactYearMatch;
+        }
+        
+        const movieId = bestMatch.id;
+        const fullData = await this.getFullMovieData(movieId);
+        
+        if (fullData) {
+          return this.formatPoiskKinoData(fullData, contentType);
+        } else {
+          return this.formatPoiskKinoData(bestMatch, contentType);
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('API ошибка:', error);
+      return null;
+    }
+  }
+  
+  async getFullMovieData(movieId) {
+    try {
+      const response = await fetch(`${this.SEARCH_API_URL}/movie?id=${movieId}`);
+      
+      if (response.ok) {
+        return await response.json();
+      } else {
+        console.warn(`Не удалось получить полные данные для фильма ${movieId}`);
+        return null;
+      }
+    } catch (error) {
+      console.error('Ошибка получения полных данных фильма:', error);
+      return null;
+    }
+  }
+  
+  // ============ ОСНОВНЫЕ МЕТОДЫ (сохранены из оригинала) ============
+  
+  syncCustomRows(apiRows) {
     const mergedRows = { ...this.customRows };
     
-    Object.keys(supabaseRows).forEach(rowId => {
+    Object.keys(apiRows).forEach(rowId => {
       if (!mergedRows[rowId]) {
-        mergedRows[rowId] = supabaseRows[rowId];
+        mergedRows[rowId] = apiRows[rowId];
       } else {
         const localRow = mergedRows[rowId];
-        const supabaseRow = supabaseRows[rowId];
+        const apiRow = apiRows[rowId];
         
-        if (supabaseRow.updatedAt > localRow.updatedAt) {
-          mergedRows[rowId] = supabaseRow;
+        if (apiRow.updatedAt > localRow.updatedAt) {
+          mergedRows[rowId] = apiRow;
         }
       }
     });
@@ -175,95 +410,11 @@ class FilmManager {
     this.saveCustomRowsToLocal();
     
     setTimeout(async () => {
-      const success = await this.saveCustomRowToSupabase(newRow);
-      if (success) {
-        console.log('Ряд синхронизирован с Supabase');
-      }
+      const success = await this.saveCustomRowToAPI(newRow);
+      if (success) console.log('✅ Ряд синхронизирован');
     }, 50);
     
     return newRow;
-  }
-  
-  async saveCustomRowToSupabase(rowData) {
-    try {
-      const response = await fetch(`${this.SUPABASE_URL}/rest/v1/custom_rows`, {
-        method: 'POST',
-        headers: {
-          'apikey': this.SUPABASE_KEY,
-          'Authorization': `Bearer ${this.SUPABASE_KEY}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=representation'
-        },
-        body: JSON.stringify({
-          id: rowData.id,
-          name: rowData.name,
-          page_type: rowData.pageType,
-          max_row_items: rowData.maxRowItems,
-          row_items: rowData.rowItems,
-          modal_items: rowData.modalItems,
-          is_global: rowData.isGlobal,
-          user_id: 'admin',
-          created_at: rowData.createdAt,
-          updated_at: rowData.updatedAt
-        })
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        return true;
-      } else {
-        return false;
-      }
-    } catch (error) {
-      console.error('Ошибка сохранения ряда:', error);
-      return false;
-    }
-  }
-  
-  async updateCustomRowInSupabase(rowId, updates) {
-    try {
-      const supabaseUpdates = {};
-      
-      if (updates.rowItems !== undefined) supabaseUpdates.row_items = updates.rowItems;
-      if (updates.modalItems !== undefined) supabaseUpdates.modal_items = updates.modalItems;
-      if (updates.name !== undefined) supabaseUpdates.name = updates.name;
-      if (updates.pageType !== undefined) supabaseUpdates.page_type = updates.pageType;
-      if (updates.maxRowItems !== undefined) supabaseUpdates.max_row_items = updates.maxRowItems;
-      
-      supabaseUpdates.updated_at = new Date().toISOString();
-      
-      const response = await fetch(`${this.SUPABASE_URL}/rest/v1/custom_rows?id=eq.${rowId}`, {
-        method: 'PATCH',
-        headers: {
-          'apikey': this.SUPABASE_KEY,
-          'Authorization': `Bearer ${this.SUPABASE_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(supabaseUpdates)
-      });
-      
-      return response.ok;
-    } catch (error) {
-      console.error('Ошибка обновления ряда:', error);
-      return false;
-    }
-  }
-  
-  async deleteCustomRowFromSupabase(rowId) {
-    try {
-      const response = await fetch(`${this.SUPABASE_URL}/rest/v1/custom_rows?id=eq.${rowId}`, {
-        method: 'DELETE',
-        headers: {
-          'apikey': this.SUPABASE_KEY,
-          'Authorization': `Bearer ${this.SUPABASE_KEY}`
-        }
-      });
-      
-      return response.ok;
-    } catch (error) {
-      console.error('Ошибка удаления ряда:', error);
-      return false;
-    }
   }
   
   deleteCustomRow(rowId) {
@@ -272,10 +423,8 @@ class FilmManager {
       this.saveCustomRowsToLocal();
       
       setTimeout(async () => {
-        const success = await this.deleteCustomRowFromSupabase(rowId);
-        if (success) {
-          console.log('Ряд удален из Supabase');
-        }
+        const success = await this.deleteCustomRowFromAPI(rowId);
+        if (success) console.log('✅ Ряд удален');
       }, 50);
       
       return true;
@@ -288,11 +437,10 @@ class FilmManager {
     
     if (!this.customRows[rowId].modalItems.includes(filmId)) {
       this.customRows[rowId].modalItems.push(filmId);
-      
       this.saveCustomRowsToLocal();
       
       setTimeout(async () => {
-        await this.updateCustomRowInSupabase(rowId, {
+        await this.updateCustomRowInAPI(rowId, {
           modalItems: this.customRows[rowId].modalItems
         });
       }, 50);
@@ -307,11 +455,10 @@ class FilmManager {
     
     this.customRows[rowId].modalItems = this.customRows[rowId].modalItems.filter(id => id !== filmId);
     this.customRows[rowId].rowItems = this.customRows[rowId].rowItems.filter(id => id !== filmId);
-    
     this.saveCustomRowsToLocal();
     
     setTimeout(async () => {
-      await this.updateCustomRowInSupabase(rowId, {
+      await this.updateCustomRowInAPI(rowId, {
         modalItems: this.customRows[rowId].modalItems,
         rowItems: this.customRows[rowId].rowItems
       });
@@ -330,11 +477,10 @@ class FilmManager {
     if (!this.customRows[rowId].rowItems.includes(filmId) && 
         this.customRows[rowId].rowItems.length < this.customRows[rowId].maxRowItems) {
       this.customRows[rowId].rowItems.push(filmId);
-      
       this.saveCustomRowsToLocal();
       
       setTimeout(async () => {
-        await this.updateCustomRowInSupabase(rowId, {
+        await this.updateCustomRowInAPI(rowId, {
           modalItems: this.customRows[rowId].modalItems,
           rowItems: this.customRows[rowId].rowItems
         });
@@ -349,11 +495,10 @@ class FilmManager {
     if (!this.customRows[rowId]) return false;
     
     this.customRows[rowId].rowItems = this.customRows[rowId].rowItems.filter(id => id !== filmId);
-    
     this.saveCustomRowsToLocal();
     
     setTimeout(async () => {
-      await this.updateCustomRowInSupabase(rowId, {
+      await this.updateCustomRowInAPI(rowId, {
         rowItems: this.customRows[rowId].rowItems
       });
     }, 50);
@@ -402,124 +547,6 @@ class FilmManager {
       .filter(film => film !== undefined);
   }
   
-  preloadImages() {
-    if (!this.films || this.films.length === 0) return;
-    
-    this.films.forEach(film => {
-      if (film.img && !film.img.includes('data:image/svg+xml')) {
-        const img = new Image();
-        img.src = film.img;
-        img.onerror = () => {
-          film.img = this.generatePlaceholder(film.title);
-        };
-      } else if (!film.img) {
-        film.img = this.generatePlaceholder(film.title);
-      }
-    });
-  }
-  
-  normalizeFilmData(film) {
-    const normalizedFilm = {
-      id: film.id,
-      title: film.title,
-      year: film.year,
-      rating: film.rating,
-      genre: film.genre,
-      duration: film.duration,
-      country: film.country,
-      partner: film.partner,
-      img: film.img || this.generatePlaceholder(film.title),
-      description: film.description,
-      director: film.director,
-      actors: film.actors,
-      reviews: film.reviews || film.user_ratings || [],
-      tags: film.tags || [],
-      userRatings: film.user_ratings || [],
-      contentType: film.content_type || 'movie',
-      seasons: film.seasons || 1,
-      episodes: film.episodes || 1,
-      partnerLinks: film.partner_data || {},
-      kpId: film.kp_id,
-      createdAt: film.created_at,
-      updatedAt: film.updated_at,
-      featuredRows: film.featured_data || [],
-      backdropUrl: film.backdrop_url || null,
-      ageRating: film.age_rating || '16+',
-      trailerUrl: film.trailer_url || null
-    };
-    
-    if (!normalizedFilm.img || normalizedFilm.img.includes('placeholder.com') || normalizedFilm.img.includes('ffffff')) {
-      normalizedFilm.img = this.generatePlaceholder(normalizedFilm.title);
-    }
-    
-    return normalizedFilm;
-  }
-  
-  async saveFilmToSupabase(film) {
-    try {
-      const filmData = {
-        title: film.title || '',
-        year: parseInt(film.year) || new Date().getFullYear(),
-        rating: parseFloat(film.rating) || 7.0,
-        genre: film.genre || 'Фильм',
-        duration: film.duration || '120 мин',
-        country: film.country || 'Россия',
-        partner: film.partner || 'okko',
-        img: film.img || this.generatePlaceholder(film.title),
-        description: film.description || `Фильм "${film.title}"`,
-        director: film.director || 'Режиссер',
-        actors: film.actors || 'Актеры',
-        content_type: film.contentType || 'movie',
-        seasons: parseInt(film.seasons) || 1,
-        episodes: parseInt(film.episodes) || 1,
-        kp_id: film.kpId || null,
-        featured_data: film.featuredRows || [],
-        partner_data: film.partnerLinks || {},
-        tags: film.tags || [],
-        reviews: film.reviews || [],
-        user_ratings: film.userRatings || [],
-        backdrop_url: film.backdropUrl || null,
-        age_rating: film.ageRating || '16+',
-        trailer_url: film.trailerUrl || null
-      };
-      
-      // Удаляем undefined поля
-      Object.keys(filmData).forEach(key => {
-        if (filmData[key] === undefined) {
-          delete filmData[key];
-        }
-      });
-      
-      const response = await fetch(`${this.SUPABASE_URL}/rest/v1/films`, {
-        method: 'POST',
-        headers: {
-          'apikey': this.SUPABASE_KEY,
-          'Authorization': `Bearer ${this.SUPABASE_KEY}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=representation'
-        },
-        body: JSON.stringify(filmData)
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Ошибка ответа Supabase:', response.status, errorText);
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
-      }
-      
-      const result = await response.json();
-      const normalizedFilm = this.normalizeFilmData(result[0]);
-      
-      this.films.unshift(normalizedFilm);
-      localStorage.setItem('vzorkino_films_cache', JSON.stringify(this.films));
-      
-      return normalizedFilm;
-    } catch (error) {
-      console.error('Ошибка сохранения фильма:', error);
-      throw error;
-    }
-  }
-  
   async deleteFilm(filmId) {
     try {
       await this.removeFilmFromAllRows(filmId);
@@ -528,17 +555,8 @@ class FilmManager {
       localStorage.setItem('vzorkino_films_cache', JSON.stringify(this.films));
       
       setTimeout(async () => {
-        const response = await fetch(`${this.SUPABASE_URL}/rest/v1/films?id=eq.${filmId}`, {
-          method: 'DELETE',
-          headers: {
-            'apikey': this.SUPABASE_KEY,
-            'Authorization': `Bearer ${this.SUPABASE_KEY}`
-          }
-        });
-        
-        if (response.ok) {
-          console.log('Фильм удален из базы');
-        }
+        const success = await this.deleteFilmFromAPI(filmId);
+        if (success) console.log('✅ Фильм удален');
       }, 50);
       
       return true;
@@ -564,7 +582,7 @@ class FilmManager {
         this.customRows[rowId] = row;
         
         setTimeout(async () => {
-          await this.updateCustomRowInSupabase(rowId, {
+          await this.updateCustomRowInAPI(rowId, {
             rowItems: row.rowItems,
             modalItems: row.modalItems
           });
@@ -590,32 +608,21 @@ class FilmManager {
         
         if (row.rowItems && row.rowItems.length > 0) {
           const originalLength = row.rowItems.length;
-          row.rowItems = row.rowItems.filter(filmId => 
-            filmIds.includes(filmId.toString())
-          );
+          row.rowItems = row.rowItems.filter(filmId => filmIds.includes(filmId.toString()));
           cleanedCount += (originalLength - row.rowItems.length);
         }
         
         if (row.modalItems && row.modalItems.length > 0) {
           const originalLength = row.modalItems.length;
-          row.modalItems = row.modalItems.filter(filmId => 
-            filmIds.includes(filmId.toString())
-          );
+          row.modalItems = row.modalItems.filter(filmId => filmIds.includes(filmId.toString()));
           cleanedCount += (originalLength - row.modalItems.length);
         }
         
         this.customRows[rowId] = row;
-        
-        setTimeout(async () => {
-          await this.updateCustomRowInSupabase(rowId, {
-            rowItems: row.rowItems,
-            modalItems: row.modalItems
-          });
-        }, 50);
       });
       
       if (cleanedCount > 0) {
-        console.log(`Очищено ${cleanedCount} ссылок на несуществующие фильмы`);
+        console.log(`🧹 Очищено ${cleanedCount} ссылок на несуществующие фильмы`);
         localStorage.setItem('vzorkino_custom_rows', JSON.stringify(this.customRows));
       }
       
@@ -693,7 +700,7 @@ class FilmManager {
             trailerUrl: fullData.trailer?.url || null
           };
           
-          const savedFilm = await this.saveFilmToSupabase(newFilm);
+          const savedFilm = await this.saveFilmToAPI(newFilm);
           return savedFilm;
         }
       }
@@ -705,35 +712,46 @@ class FilmManager {
     }
   }
   
+  async alternativeSearch(title, year, contentType) {
+    const partnerLinks = await this.generatePartnerLinks(title, year, contentType);
+    
+    const newFilm = {
+      title: title,
+      year: parseInt(year) || new Date().getFullYear(),
+      rating: 7.5,
+      genre: this.getGenreByContentType(contentType),
+      duration: contentType === "movie" ? "120 мин" : "45 мин",
+      country: "Россия",
+      img: this.generatePlaceholder(title),
+      description: `${title} - ${this.getContentTypeDescription(contentType)}`,
+      director: "Не указан",
+      actors: "Не указан",
+      contentType: contentType,
+      partnerLinks: partnerLinks,
+      tags: [this.getGenreByContentType(contentType)],
+      ageRating: '16+'
+    };
+    
+    try {
+      const savedFilm = await this.saveFilmToAPI(newFilm);
+      if (savedFilm) return savedFilm;
+    } catch (error) {
+      console.error('Ошибка сохранения:', error);
+      throw error;
+    }
+  }
+  
   async updateFilmFull(filmId, filmData) {
     try {
-      const response = await fetch(`${this.SUPABASE_URL}/rest/v1/films?id=eq.${filmId}`, {
-        method: 'PATCH',
-        headers: {
-          'apikey': this.SUPABASE_KEY,
-          'Authorization': `Bearer ${this.SUPABASE_KEY}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=representation'
-        },
-        body: JSON.stringify({
-          ...filmData,
-          updated_at: new Date().toISOString()
-        })
-      });
+      const success = await this.updateFilmInAPI(filmId, filmData);
       
-      if (response.ok) {
-        const result = await response.json();
-        if (result && result.length > 0) {
-          const updatedFilm = this.normalizeFilmData(result[0]);
-          
-          const filmIndex = this.films.findIndex(f => f.id == filmId);
-          if (filmIndex !== -1) {
-            this.films[filmIndex] = updatedFilm;
-            localStorage.setItem('vzorkino_films_cache', JSON.stringify(this.films));
-          }
-          
-          return updatedFilm;
+      if (success) {
+        const filmIndex = this.films.findIndex(f => f.id == filmId);
+        if (filmIndex !== -1) {
+          this.films[filmIndex] = { ...this.films[filmIndex], ...filmData };
+          localStorage.setItem('vzorkino_films_cache', JSON.stringify(this.films));
         }
+        return this.films[filmIndex];
       }
       return null;
     } catch (error) {
@@ -788,84 +806,10 @@ class FilmManager {
     };
   }
   
-  async searchPoiskKino(title, year = null, contentType = "movie") {
-    try {
-      const typeMap = {
-        'movie': 'movie',
-        'series': 'tv-series',
-        'cartoon': 'animated-series'
-      };
-      
-      const apiType = typeMap[contentType] || 'movie';
-      
-      let searchUrl = `https://api.poiskkino.dev/v1.4/movie/search?query=${encodeURIComponent(title)}&limit=5`;
-      if (year) searchUrl += `&year=${year}`;
-      
-      const searchResponse = await fetch(searchUrl, {
-        headers: { 'X-API-KEY': this.POISK_KINO_API_KEY }
-      });
-      
-      if (!searchResponse.ok) throw new Error(`HTTP error! status: ${searchResponse.status}`);
-      
-      const searchData = await searchResponse.json();
-      
-      if (searchData.docs && searchData.docs.length > 0) {
-        let bestMatch = searchData.docs[0];
-        
-        const typeMatches = searchData.docs.filter(movie => movie.type === apiType);
-        if (typeMatches.length > 0) {
-          bestMatch = typeMatches[0];
-        }
-        
-        if (year) {
-          const exactYearMatch = searchData.docs.find(movie => movie.year == year);
-          if (exactYearMatch) bestMatch = exactYearMatch;
-        }
-        
-        const movieId = bestMatch.id;
-        const fullData = await this.getFullMovieData(movieId);
-        
-        if (fullData) {
-          return this.formatPoiskKinoData(fullData, contentType);
-        } else {
-          return this.formatPoiskKinoData(bestMatch, contentType);
-        }
-      }
-      
-      return null;
-    } catch (error) {
-      console.error('API ошибка:', error);
-      return null;
-    }
-  }
-  
-  async getFullMovieData(movieId) {
-    try {
-      const response = await fetch(`https://api.poiskkino.dev/v1.4/movie/${movieId}`, {
-        headers: { 'X-API-KEY': this.POISK_KINO_API_KEY }
-      });
-      
-      if (response.ok) {
-        return await response.json();
-      } else {
-        console.warn(`Не удалось получить полные данные для фильма ${movieId}`);
-        return null;
-      }
-    } catch (error) {
-      console.error('Ошибка получения полных данных фильма:', error);
-      return null;
-    }
-  }
-  
   formatPoiskKinoData(movieData, contentType) {
     let posterPath = null;
     if (movieData.poster) {
       posterPath = movieData.poster.previewUrl || movieData.poster.url;
-    }
-    
-    let backdropPath = null;
-    if (movieData.backdrop) {
-      backdropPath = movieData.backdrop.previewUrl || movieData.backdrop.url;
     }
     
     let rating = 7.0;
@@ -877,8 +821,6 @@ class FilmManager {
     let genre = 'Фильм';
     if (movieData.genres && movieData.genres.length > 0) {
       genre = movieData.genres.map(g => g.name).join(', ');
-    } else if (movieData.genre && movieData.genre.length > 0) {
-      genre = movieData.genre.map(g => g.name).join(', ');
     } else {
       genre = this.getGenreByContentType(contentType);
     }
@@ -886,11 +828,9 @@ class FilmManager {
     let country = 'Россия';
     if (movieData.countries && movieData.countries.length > 0) {
       country = movieData.countries.map(c => c.name).join(', ');
-    } else if (movieData.country && movieData.country.length > 0) {
-      country = movieData.country.map(c => c.name).join(', ');
     }
     
-    let description = movieData.description || movieData.shortDescription || movieData.overview;
+    let description = movieData.description || movieData.shortDescription;
     if (!description) {
       description = `"${movieData.name || movieData.alternativeName}" - ${this.getContentTypeDescription(contentType)}`;
     }
@@ -898,38 +838,23 @@ class FilmManager {
     let duration = '120 мин';
     if (movieData.movieLength) {
       duration = `${movieData.movieLength} мин`;
-    } else if (movieData.runtime) {
-      duration = `${movieData.runtime} мин`;
     } else if (contentType === 'series') {
       duration = '45 мин серия';
-    } else if (contentType === 'cartoon') {
-      duration = '90 мин';
     }
     
     let seasons = 1;
-    if (contentType === 'series') {
-      if (movieData.seasonsInfo && Array.isArray(movieData.seasonsInfo)) {
-        seasons = movieData.seasonsInfo.length;
-      } else if (movieData.numberOfSeasons) {
-        seasons = movieData.numberOfSeasons;
-      } else if (movieData.totalSeasons) {
-        seasons = movieData.totalSeasons;
-      }
+    if (contentType === 'series' && movieData.seasonsInfo) {
+      seasons = movieData.seasonsInfo.length;
     }
     
     let ageRating = '16+';
     if (movieData.ageRating) {
       ageRating = movieData.ageRating;
-    } else if (movieData.adult === false) {
-      ageRating = '12+';
-    } else if (movieData.adult === true) {
-      ageRating = '18+';
     }
     
     return {
-      title: movieData.name || movieData.alternativeName || movieData.title || 'Без названия',
-      originalTitle: movieData.alternativeName || movieData.enName || movieData.originalTitle || '',
-      year: movieData.year || movieData.releaseDate?.substring(0, 4) || new Date().getFullYear(),
+      title: movieData.name || movieData.alternativeName || 'Без названия',
+      year: movieData.year || new Date().getFullYear(),
       rating: parseFloat(rating.toFixed(1)),
       description: description,
       img: posterPath,
@@ -937,67 +862,39 @@ class FilmManager {
       country: country,
       director: this.extractDirector(movieData),
       actors: this.extractActors(movieData),
-      kpId: movieData.id || movieData.kpId,
+      kpId: movieData.id,
       contentType: contentType,
       seasons: seasons,
       duration: duration,
-      backdropUrl: backdropPath,
-      ageRating: ageRating,
-      trailerUrl: movieData.trailer?.url || null
+      ageRating: ageRating
     };
   }
   
   extractDirector(movieData) {
     if (movieData.persons && Array.isArray(movieData.persons)) {
       const directors = movieData.persons.filter(person => {
-        const enProfession = person.enProfession ? person.enProfession.toLowerCase() : '';
-        const profession = person.profession ? person.profession.toLowerCase() : '';
-        
-        return enProfession.includes('director') || 
-               profession.includes('режиссер') ||
-               enProfession.includes('producer') ||
-               profession.includes('продюсер');
+        const profession = (person.enProfession || person.profession || '').toLowerCase();
+        return profession.includes('director') || profession.includes('режиссер');
       });
       
       if (directors.length > 0) {
-        const directorNames = directors.slice(0, 2).map(d => {
-          return d.name || d.enName || '';
-        }).filter(Boolean);
-        
-        if (directorNames.length > 0) {
-          return directorNames.join(', ');
-        }
+        return directors.slice(0, 2).map(d => d.name || d.enName).filter(Boolean).join(', ');
       }
     }
-    
     return 'Не указан';
   }
   
   extractActors(movieData) {
-    const actors = [];
-    
     if (movieData.persons && Array.isArray(movieData.persons)) {
-      const actorPersons = movieData.persons.filter(person => {
-        const enProfession = person.enProfession ? person.enProfession.toLowerCase() : '';
-        const profession = person.profession ? person.profession.toLowerCase() : '';
-        
-        return enProfession.includes('actor') || 
-               enProfession.includes('actress') ||
-               profession.includes('актер') ||
-               profession.includes('актриса');
+      const actors = movieData.persons.filter(person => {
+        const profession = (person.enProfession || person.profession || '').toLowerCase();
+        return profession.includes('actor') || profession.includes('актер');
       });
       
-      const actorNames = actorPersons.slice(0, 6).map(a => {
-        return a.name || a.enName || '';
-      }).filter(Boolean);
-      
-      actors.push(...actorNames);
+      if (actors.length > 0) {
+        return actors.slice(0, 6).map(a => a.name || a.enName).filter(Boolean).join(', ');
+      }
     }
-    
-    if (actors.length > 0) {
-      return actors.join(', ');
-    }
-    
     return 'Не указаны';
   }
   
@@ -1017,35 +914,46 @@ class FilmManager {
     }
   }
   
-  async alternativeSearch(title, year, contentType) {
-    const partnerLinks = await this.generatePartnerLinks(title, year, contentType);
-    
-    const newFilm = {
-      title: title,
-      year: parseInt(year) || new Date().getFullYear(),
-      rating: 7.5,
-      genre: this.getGenreByContentType(contentType),
-      duration: contentType === "movie" ? "120 мин" : "45 мин",
-      country: "Россия",
-      img: this.generatePlaceholder(title),
-      description: `${title} - ${this.getContentTypeDescription(contentType)}`,
-      director: "Не указан",
-      actors: "Не указан",
-      contentType: contentType,
-      partnerLinks: partnerLinks,
-      tags: [this.getGenreByContentType(contentType)],
-      ageRating: '16+'
+  normalizeFilmData(film) {
+    return {
+      id: film.id,
+      title: film.title,
+      year: film.year,
+      rating: film.rating,
+      genre: film.genre,
+      duration: film.duration,
+      country: film.country,
+      partner: film.partner,
+      img: film.img || this.generatePlaceholder(film.title),
+      description: film.description,
+      director: film.director,
+      actors: film.actors,
+      reviews: film.reviews || [],
+      tags: film.tags || [],
+      userRatings: film.user_ratings || [],
+      contentType: film.content_type || 'movie',
+      seasons: film.seasons || 1,
+      partnerLinks: film.partner_data || {},
+      kpId: film.kp_id,
+      createdAt: film.created_at,
+      updatedAt: film.updated_at,
+      backdropUrl: film.backdrop_url,
+      ageRating: film.age_rating || '16+',
+      trailerUrl: film.trailer_url
     };
+  }
+  
+  preloadImages() {
+    if (!this.films || this.films.length === 0) return;
     
-    try {
-      const savedFilm = await this.saveFilmToSupabase(newFilm);
-      if (savedFilm) {
-        return savedFilm;
+    this.films.forEach(film => {
+      if (film.img && !film.img.includes('data:image/svg+xml')) {
+        const img = new Image();
+        img.src = film.img;
+      } else if (!film.img) {
+        film.img = this.generatePlaceholder(film.title);
       }
-    } catch (error) {
-      console.error('Ошибка сохранения:', error);
-      throw error;
-    }
+    });
   }
   
   async bulkAddFilms(filmList) {
@@ -1075,7 +983,7 @@ class FilmManager {
         date: new Date().toISOString()
       });
       
-      await this.updateFilmInSupabase(filmId, {
+      await this.updateFilmInAPI(filmId, {
         user_ratings: this.films[filmIndex].userRatings
       });
       
@@ -1104,7 +1012,7 @@ class FilmManager {
       
       this.films[filmIndex].reviews.unshift(newReview);
       
-      await this.updateFilmInSupabase(filmId, {
+      await this.updateFilmInAPI(filmId, {
         reviews: this.films[filmIndex].reviews
       });
       
@@ -1113,39 +1021,6 @@ class FilmManager {
       return newReview;
     }
     return null;
-  }
-  
-  async updateFilmInSupabase(filmId, updates) {
-    try {
-      const supabaseUpdates = {};
-      Object.keys(updates).forEach(key => {
-        if (key === 'contentType') supabaseUpdates.content_type = updates[key];
-        else if (key === 'partnerLinks') supabaseUpdates.partner_data = updates[key];
-        else if (key === 'userRatings') supabaseUpdates.user_ratings = updates[key];
-        else if (key === 'featuredRows') supabaseUpdates.featured_data = updates[key];
-        else if (key === 'ageRating') supabaseUpdates.age_rating = updates[key];
-        else if (key === 'trailerUrl') supabaseUpdates.trailer_url = updates[key];
-        else supabaseUpdates[key] = updates[key];
-      });
-      
-      const response = await fetch(`${this.SUPABASE_URL}/rest/v1/films?id=eq.${filmId}`, {
-        method: 'PATCH',
-        headers: {
-          'apikey': this.SUPABASE_KEY,
-          'Authorization': `Bearer ${this.SUPABASE_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ...supabaseUpdates,
-          updated_at: new Date().toISOString()
-        })
-      });
-      
-      return response.ok;
-    } catch (error) {
-      console.error('Ошибка обновления:', error);
-      return false;
-    }
   }
   
   getUserRating(filmId, userId = "defaultUser") {
@@ -1171,7 +1046,6 @@ class FilmManager {
     if (filmIndex !== -1) {
       this.films[filmIndex] = { ...this.films[filmIndex], ...updatedData };
       localStorage.setItem('vzorkino_films_cache', JSON.stringify(this.films));
-      
       return true;
     }
     return false;
