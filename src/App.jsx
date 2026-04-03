@@ -18,9 +18,7 @@ import { filmManager } from './services/filmManager';
 import { initTracking, hasTrackingConsent } from './utils/userId';
 import './styles/index.css';
 
-// Секретная комбинация для вызова окна входа
-// (это только триггер для показа окна, не для доступа!)
-const ADMIN_COMBO = '1337';
+const ADMIN_COMBO = import.meta.env.VITE_ADMIN_COMBO || '1337';
 
 function App() {
   const [films, setFilms] = useState([]);
