@@ -1,18 +1,28 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: true, // Разрешает доступ с других устройств
-    port: 5173, // Порт (можете поменять если занят)
-    strictPort: true, // Не менять порт автоматически
+    host: true,
+    port: 5173,
+    strictPort: true,
     watch: {
-      usePolling: true, // Для Docker/WSL, если нужно
+      usePolling: true,
+    },
+    proxy: {
+      '/api': {
+        target: 'https://qolbgrvlkadqnfnprbgr.supabase.co',
+        changeOrigin: true,
+        // ИСПРАВЛЕНО: теперь правильно перенаправляет на Edge Function
+        rewrite: (path) => path.replace(/^\/api/, '/functions/v1/api'),
+      },
+      '/functions': {
+        target: 'https://qolbgrvlkadqnfnprbgr.supabase.co',
+        changeOrigin: true,
+      }
     }
   },
-  // Опционально: для билда
   build: {
     outDir: 'dist',
     sourcemap: true,
