@@ -102,6 +102,9 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [customRows, setCustomRows] = useState({});
   
+  // Множество для быстрой проверки дубликатов (синхронизируется с films)
+  const [filmKeysSet, setFilmKeysSet] = useState(new Set());
+  
   // Проверяем сохранённую сессию при загрузке
   useEffect(() => {
     const savedAuth = sessionStorage.getItem('admin_auth');
@@ -109,6 +112,21 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
       setAuthenticated(true);
     }
   }, []);
+  
+  // Обновляем множество ключей фильмов при изменении films
+  useEffect(() => {
+    const keys = new Set();
+    films.forEach(film => {
+      // Создаем уникальный ключ: тип_название_год (в нижнем регистре, без пробелов)
+      const key = `${film.contentType}_${film.title.toLowerCase().trim()}_${film.year}`;
+      keys.add(key);
+      
+      // Также добавляем ключ без года (для проверки названия)
+      const keyWithoutYear = `${film.contentType}_${film.title.toLowerCase().trim()}`;
+      keys.add(keyWithoutYear);
+    });
+    setFilmKeysSet(keys);
+  }, [films]);
   
   // Фильтрация фильмов при поиске
   useEffect(() => {
@@ -298,32 +316,44 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
   };
   
   // УЛУЧШЕННАЯ ФУНКЦИЯ ДЛЯ ПРОВЕРКИ СУЩЕСТВОВАНИЯ ФИЛЬМА
-  const isFilmExists = (title, year, contentType) => {
+  // Использует актуальные данные из filmManager.films и локальное множество
+  const isFilmExists = (title, year, contentType, addedTitles = new Set()) => {
     const searchTitle = title.toLowerCase().trim();
+    const searchYear = parseInt(year);
     
-    return films.some(film => {
+    // Проверка по уже добавленным в текущей сессии (для массового добавления)
+    const tempKey = `${contentType}_${searchTitle}_${searchYear || ''}`;
+    if (addedTitles.has(tempKey)) {
+      return true;
+    }
+    
+    // Получаем актуальные фильмы из filmManager (самый свежий источник)
+    const currentFilms = filmManager?.films || films;
+    
+    return currentFilms.some(film => {
       const filmTitle = film.title.toLowerCase().trim();
+      const filmYear = parseInt(film.year);
+      const filmContentType = film.contentType;
       
-      // Приоритет 1: Строгое совпадение названия, года и типа
+      // Строгое совпадение: название, год и тип
       if (filmTitle === searchTitle && 
-          film.year === parseInt(year) && 
-          film.contentType === contentType) {
+          filmYear === searchYear && 
+          filmContentType === contentType) {
         return true;
       }
       
-      // Приоритет 2: Строгое совпадение названия и типа, но год разный
-      // Это считается дубликатом, потому что у фильма не может быть двух разных годов с одним названием
-      if (filmTitle === searchTitle && film.contentType === contentType) {
+      // Строгое совпадение названия и типа (независимо от года)
+      // Это считается дубликатом, так как у фильма не может быть двух одинаковых названий с одним типом
+      if (filmTitle === searchTitle && filmContentType === contentType) {
         return true;
       }
       
-      // Приоритет 3: Похожее название (например, "Дюна" и "Дюна 2" - это разные фильмы)
-      // Проверяем, не является ли это частью другого фильма
-      if (year) {
-        // Если название очень похоже (одно содержит другое) И год совпадает - это вероятно дубликат
-        if ((filmTitle.includes(searchTitle) || searchTitle.includes(filmTitle)) && 
-            Math.abs(film.year - parseInt(year)) <= 1 && 
-            film.contentType === contentType) {
+      // Проверка на очень похожие названия (если указан год)
+      if (searchYear) {
+        const titleSimilar = filmTitle.includes(searchTitle) || searchTitle.includes(filmTitle);
+        const yearClose = Math.abs(filmYear - searchYear) <= 1;
+        
+        if (titleSimilar && yearClose && filmContentType === contentType) {
           return true;
         }
       }
@@ -381,7 +411,7 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
   // Массовое добавление фильмов с учетом выбранного типа
   const parseBulkText = (text) => {
     const lines = text.split('\n').filter(line => line.trim() !== '');
-    const films = [];
+    const filmsList = [];
     
     lines.forEach(line => {
       // Формат: "Название, год" или просто "Название"
@@ -390,15 +420,15 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
       const year = parts.length > 1 ? parts[1] : '';
       
       if (title) {
-        films.push({ 
+        filmsList.push({ 
           title, 
           year, 
-          contentType: bulkContentType // Используем выбранный тип для всех
+          contentType: bulkContentType
         });
       }
     });
     
-    return films;
+    return filmsList;
   };
   
   const handleBulkAdd = async () => {
@@ -426,20 +456,22 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
     setBulkAddResults([]);
     
     const results = [];
+    const addedInThisBatch = new Set(); // Отслеживаем дубликаты в текущей сессии
     
     for (let i = 0; i < filmsToAdd.length; i++) {
       const film = filmsToAdd[i];
       setBulkProgress({ current: i + 1, total: filmsToAdd.length });
       
       try {
-        // Проверяем, существует ли уже такой фильм
-        const exists = isFilmExists(film.title, film.year, film.contentType);
+        // Проверяем, существует ли уже такой фильм (с учетом уже добавленных в этой сессии)
+        const exists = isFilmExists(film.title, film.year, film.contentType, addedInThisBatch);
         
         if (exists) {
+          const yearText = film.year ? `, ${film.year}` : '';
           results.push({
             title: film.title,
             status: 'skipped',
-            message: `⚠️ Уже существует (${film.contentType === 'movie' ? 'Фильм' : film.contentType === 'series' ? 'Сериал' : 'Мультфильм'}${film.year ? `, ${film.year}` : ''})`
+            message: `⚠️ Уже существует (${film.contentType === 'movie' ? 'Фильм' : film.contentType === 'series' ? 'Сериал' : 'Мультфильм'}${yearText})`
           });
         } else {
           const result = await filmManager.autoAddFilm(
@@ -449,16 +481,21 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
           );
           
           if (result) {
+            // Добавляем в Set для отслеживания дубликатов в этой сессии
+            const key = `${film.contentType}_${film.title.toLowerCase().trim()}_${film.year || ''}`;
+            addedInThisBatch.add(key);
+            
+            const yearText = film.year ? `, ${film.year}` : '';
             results.push({
               title: film.title,
               status: 'success',
-              message: `✅ Добавлен (${film.contentType === 'movie' ? 'Фильм' : film.contentType === 'series' ? 'Сериал' : 'Мультфильм'}${film.year ? `, ${film.year}` : ''})`
+              message: `✅ Добавлен (${film.contentType === 'movie' ? 'Фильм' : film.contentType === 'series' ? 'Сериал' : 'Мультфильм'}${yearText})`
             });
           } else {
             results.push({
               title: film.title,
               status: 'error',
-              message: `❌ Ошибка`
+              message: `❌ Ошибка при добавлении`
             });
           }
         }
@@ -477,7 +514,8 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
     }
     
     setIsBulkAdding(false);
-    showNotification(`✅ Добавлено ${results.filter(r => r.status === 'success').length} из ${filmsToAdd.length}`, 'success');
+    const successCount = results.filter(r => r.status === 'success').length;
+    showNotification(`✅ Добавлено ${successCount} из ${filmsToAdd.length}`, 'success');
     updateData();
     window.dispatchEvent(new Event('filmsUpdated'));
   };
