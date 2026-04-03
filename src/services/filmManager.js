@@ -443,7 +443,6 @@ class FilmManager {
       createdAt: film.created_at,
       updatedAt: film.updated_at,
       featuredRows: film.featured_data || [],
-      logoUrl: film.logo_url || null,
       backdropUrl: film.backdrop_url || null,
       ageRating: film.age_rating || '16+',
       trailerUrl: film.trailer_url || null
@@ -460,8 +459,8 @@ class FilmManager {
     try {
       const filmData = {
         title: film.title || '',
-        year: film.year || new Date().getFullYear(),
-        rating: film.rating || 7.0,
+        year: parseInt(film.year) || new Date().getFullYear(),
+        rating: parseFloat(film.rating) || 7.0,
         genre: film.genre || 'Фильм',
         duration: film.duration || '120 мин',
         country: film.country || 'Россия',
@@ -471,18 +470,25 @@ class FilmManager {
         director: film.director || 'Режиссер',
         actors: film.actors || 'Актеры',
         content_type: film.contentType || 'movie',
-        seasons: film.seasons || 1,
+        seasons: parseInt(film.seasons) || 1,
+        episodes: parseInt(film.episodes) || 1,
         kp_id: film.kpId || null,
         featured_data: film.featuredRows || [],
         partner_data: film.partnerLinks || {},
         tags: film.tags || [],
         reviews: film.reviews || [],
         user_ratings: film.userRatings || [],
-        logo_url: film.logoUrl || null,
         backdrop_url: film.backdropUrl || null,
         age_rating: film.ageRating || '16+',
         trailer_url: film.trailerUrl || null
       };
+      
+      // Удаляем undefined поля
+      Object.keys(filmData).forEach(key => {
+        if (filmData[key] === undefined) {
+          delete filmData[key];
+        }
+      });
       
       const response = await fetch(`${this.SUPABASE_URL}/rest/v1/films`, {
         method: 'POST',
@@ -495,17 +501,19 @@ class FilmManager {
         body: JSON.stringify(filmData)
       });
       
-      if (response.ok) {
-        const result = await response.json();
-        const normalizedFilm = this.normalizeFilmData(result[0]);
-        
-        this.films.unshift(normalizedFilm);
-        localStorage.setItem('vzorkino_films_cache', JSON.stringify(this.films));
-        
-        return normalizedFilm;
-      } else {
-        throw new Error(`HTTP ${response.status}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Ошибка ответа Supabase:', response.status, errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
+      
+      const result = await response.json();
+      const normalizedFilm = this.normalizeFilmData(result[0]);
+      
+      this.films.unshift(normalizedFilm);
+      localStorage.setItem('vzorkino_films_cache', JSON.stringify(this.films));
+      
+      return normalizedFilm;
     } catch (error) {
       console.error('Ошибка сохранения фильма:', error);
       throw error;
@@ -648,7 +656,6 @@ class FilmManager {
         kinopoisk: ""
       },
       featuredRows: [],
-      logoUrl: null,
       backdropUrl: null,
       ageRating: '16+',
       trailerUrl: null
@@ -666,10 +673,9 @@ class FilmManager {
           const partnerLinks = await this.generatePartnerLinks(filmData.title, filmData.year, contentType);
           
           const newFilm = {
-            ...this.getTemplate(),
             title: fullData.name || filmData.title,
-            year: fullData.year || filmData.year,
-            rating: fullData.rating?.kp || filmData.rating,
+            year: parseInt(fullData.year || filmData.year),
+            rating: parseFloat(fullData.rating?.kp || filmData.rating) || 7.0,
             genre: fullData.genres?.[0]?.name || filmData.genre,
             duration: fullData.movieLength ? `${fullData.movieLength} мин` : filmData.duration,
             country: fullData.countries?.[0]?.name || filmData.country,
@@ -682,7 +688,6 @@ class FilmManager {
             partnerLinks: partnerLinks,
             tags: [fullData.genres?.[0]?.name || filmData.genre],
             kpId: fullData.id || filmData.kpId,
-            logoUrl: fullData.logo?.url || null,
             backdropUrl: fullData.backdrop?.url || null,
             ageRating: fullData.ageRating || filmData.ageRating || '16+',
             trailerUrl: fullData.trailer?.url || null
@@ -863,11 +868,6 @@ class FilmManager {
       backdropPath = movieData.backdrop.previewUrl || movieData.backdrop.url;
     }
     
-    let logoPath = null;
-    if (movieData.logo) {
-      logoPath = movieData.logo.previewUrl || movieData.logo.url;
-    }
-    
     let rating = 7.0;
     if (movieData.rating) {
       rating = movieData.rating.kp || movieData.rating.imdb || movieData.rating.tmdb || 7.0;
@@ -941,7 +941,6 @@ class FilmManager {
       contentType: contentType,
       seasons: seasons,
       duration: duration,
-      logoUrl: logoPath,
       backdropUrl: backdropPath,
       ageRating: ageRating,
       trailerUrl: movieData.trailer?.url || null
@@ -1022,9 +1021,8 @@ class FilmManager {
     const partnerLinks = await this.generatePartnerLinks(title, year, contentType);
     
     const newFilm = {
-      ...this.getTemplate(),
       title: title,
-      year: year || new Date().getFullYear(),
+      year: parseInt(year) || new Date().getFullYear(),
       rating: 7.5,
       genre: this.getGenreByContentType(contentType),
       duration: contentType === "movie" ? "120 мин" : "45 мин",
@@ -1035,7 +1033,8 @@ class FilmManager {
       actors: "Не указан",
       contentType: contentType,
       partnerLinks: partnerLinks,
-      tags: [this.getGenreByContentType(contentType)]
+      tags: [this.getGenreByContentType(contentType)],
+      ageRating: '16+'
     };
     
     try {
