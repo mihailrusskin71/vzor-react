@@ -435,3 +435,38 @@
     width: 100%;
   }
 }
+/* Добавьте в конец файла profile.css */
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  margin: 40px 0;
+  padding: 30px;
+  background: linear-gradient(135deg, rgba(255, 106, 43, 0.1), rgba(0, 0, 0, 0.5));
+  border-radius: 16px;
+  border: 1px solid rgba(255, 106, 43, 0.3);
+  position: relative;
+}
+
+.profile-theme-toggle {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .profile-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .profile-theme-toggle {
+    margin-left: 0;
+    margin-top: 15px;
+  }
+  
+  .profile-theme-toggle .theme-toggle-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
