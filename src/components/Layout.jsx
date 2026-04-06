@@ -40,10 +40,10 @@ const Layout = ({ children }) => {
     }, [isMobileMenuOpen]);
 
     const handleSearchClick = (e) => {
-        e.preventDefault();
-        navigate('/search');
-        setIsMobileMenuOpen(false);
-    };
+    e.preventDefault();
+    navigate('/search');
+    setIsMobileMenuOpen(false);
+};
 
     const handleProfileClick = (e) => {
         e.preventDefault();
