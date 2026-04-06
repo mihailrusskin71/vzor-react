@@ -12,9 +12,41 @@ const ProfilePage = ({ filmManager }) => {
   const [loading, setLoading] = useState(true);
   const [showClearMenu, setShowClearMenu] = useState(false);
   const [trackingEnabled, setTrackingEnabled] = useState(false);
+  const [isLightTheme, setIsLightTheme] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Загрузка сохраненной темы при монтировании - ОДИН РАЗ
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('vzorkino_theme');
+    
+    if (savedTheme === 'light') {
+      setIsLightTheme(true);
+      document.documentElement.setAttribute('data-theme', 'light');
+    } else if (savedTheme === 'dark') {
+      setIsLightTheme(false);
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      // По умолчанию тёмная тема
+      setIsLightTheme(false);
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+    setIsInitialized(true);
+  }, []);
+
+  // Применение темы при изменении - НЕ СБРАСЫВАЕМ ПРИ ПЕРЕХОДАХ
+  useEffect(() => {
+    if (!isInitialized) return;
+    
+    if (isLightTheme) {
+      document.documentElement.setAttribute('data-theme', 'light');
+      localStorage.setItem('vzorkino_theme', 'light');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem('vzorkino_theme', 'dark');
+    }
+  }, [isLightTheme, isInitialized]);
 
   useEffect(() => {
-    // Проверяем, есть ли согласие на трекинг
     const consent = hasTrackingConsent();
     setTrackingEnabled(consent);
     
@@ -25,14 +57,12 @@ const ProfilePage = ({ filmManager }) => {
     
     loadProfile();
     
-    // Слушаем событие обновления сохраненных фильмов
     const handleSavedUpdate = () => {
       if (hasTrackingConsent()) {
         refreshSavedFilms();
       }
     };
     
-    // Слушаем изменение согласия на cookie
     const handleConsentChange = (event) => {
       const accepted = event.detail?.accepted || false;
       setTrackingEnabled(accepted);
@@ -58,7 +88,6 @@ const ProfilePage = ({ filmManager }) => {
   const loadProfile = () => {
     const userProfile = getUserProfile();
     
-    // Если профиля нет (нет согласия), показываем пустое состояние
     if (!userProfile) {
       setProfile(null);
       setSavedFilms([]);
@@ -68,7 +97,6 @@ const ProfilePage = ({ filmManager }) => {
     
     setProfile(userProfile);
     
-    // Загружаем сохраненные фильмы
     if (userProfile.saved_films && userProfile.saved_films.length > 0) {
       const films = userProfile.saved_films
         .map(id => filmManager.getFilmById(id))
@@ -129,6 +157,11 @@ const ProfilePage = ({ filmManager }) => {
     }
   };
 
+  const toggleTheme = () => {
+    const newTheme = !isLightTheme;
+    setIsLightTheme(newTheme);
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'неизвестно';
     return new Date(dateString).toLocaleDateString('ru-RU', {
@@ -148,7 +181,6 @@ const ProfilePage = ({ filmManager }) => {
     );
   }
 
-  // Если трекинг отключен - показываем специальное сообщение
   if (!trackingEnabled) {
     return (
       <div className="page-content">
@@ -177,7 +209,6 @@ const ProfilePage = ({ filmManager }) => {
     );
   }
 
-  // Если профиля нет (должно быть, но на всякий случай)
   if (!profile) {
     return (
       <div className="page-content">
@@ -220,6 +251,38 @@ const ProfilePage = ({ filmManager }) => {
               <span>📺 Просмотрено: {profile.watch_history?.length || 0}</span>
               <span>🔖 Сохранено: {profile.saved_films?.length || 0}</span>
             </div>
+          </div>
+          {/* Кнопка переключения темы в правой части хедера профиля */}
+          <div className="profile-theme-toggle">
+            <button 
+              className="theme-toggle-btn"
+              onClick={toggleTheme}
+              title={isLightTheme ? 'Переключить на тёмную тему' : 'Переключить на светлую тему'}
+            >
+              {isLightTheme ? (
+                <>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                  </svg>
+                  <span>Тёмная тема</span>
+                </>
+              ) : (
+                <>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="5" />
+                    <line x1="12" y1="1" x2="12" y2="3" />
+                    <line x1="12" y1="21" x2="12" y2="23" />
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                    <line x1="1" y1="12" x2="3" y2="12" />
+                    <line x1="21" y1="12" x2="23" y2="12" />
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                  </svg>
+                  <span>Светлая тема</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
 
@@ -333,13 +396,13 @@ const ProfilePage = ({ filmManager }) => {
             {showClearMenu && (
               <div className="clear-dropdown">
                 <button onClick={handleClearHistory}>
-                   Очистить историю просмотров
+                    Очистить историю просмотров
                 </button>
                 <button onClick={handleClearSaved}>
-                   Очистить сохраненные фильмы
+                    Очистить сохраненные фильмы
                 </button>
                 <button onClick={handleClearAll} className="danger">
-                   Очистить всё
+                    Очистить всё
                 </button>
               </div>
             )}
