@@ -41,6 +41,8 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
     description: '',
     director: '',
     actors: '',
+    ageRating: '16+',
+    trailerUrl: '',
     partnerLinks: {
       okko: '',
       ivi: '',
@@ -117,11 +119,8 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
   useEffect(() => {
     const keys = new Set();
     films.forEach(film => {
-      // Создаем уникальный ключ: тип_название_год (в нижнем регистре, без пробелов)
       const key = `${film.contentType}_${film.title.toLowerCase().trim()}_${film.year}`;
       keys.add(key);
-      
-      // Также добавляем ключ без года (для проверки названия)
       const keyWithoutYear = `${film.contentType}_${film.title.toLowerCase().trim()}`;
       keys.add(keyWithoutYear);
     });
@@ -315,19 +314,16 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
     }, duration);
   };
   
-  // УЛУЧШЕННАЯ ФУНКЦИЯ ДЛЯ ПРОВЕРКИ СУЩЕСТВОВАНИЯ ФИЛЬМА
-  // Использует актуальные данные из filmManager.films и локальное множество
+  // Функция для проверки существования фильма
   const isFilmExists = (title, year, contentType, addedTitles = new Set()) => {
     const searchTitle = title.toLowerCase().trim();
     const searchYear = parseInt(year);
     
-    // Проверка по уже добавленным в текущей сессии (для массового добавления)
     const tempKey = `${contentType}_${searchTitle}_${searchYear || ''}`;
     if (addedTitles.has(tempKey)) {
       return true;
     }
     
-    // Получаем актуальные фильмы из filmManager (самый свежий источник)
     const currentFilms = filmManager?.films || films;
     
     return currentFilms.some(film => {
@@ -335,20 +331,16 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
       const filmYear = parseInt(film.year);
       const filmContentType = film.contentType;
       
-      // Строгое совпадение: название, год и тип
       if (filmTitle === searchTitle && 
           filmYear === searchYear && 
           filmContentType === contentType) {
         return true;
       }
       
-      // Строгое совпадение названия и типа (независимо от года)
-      // Это считается дубликатом, так как у фильма не может быть двух одинаковых названий с одним типом
       if (filmTitle === searchTitle && filmContentType === contentType) {
         return true;
       }
       
-      // Проверка на очень похожие названия (если указан год)
       if (searchYear) {
         const titleSimilar = filmTitle.includes(searchTitle) || searchTitle.includes(filmTitle);
         const yearClose = Math.abs(filmYear - searchYear) <= 1;
@@ -369,10 +361,9 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
     }
     
     setIsLoading(true);
-    showNotification('⏳ Ищем фильм и генерируем партнерские ссылки...', 'info');
+    showNotification('⏳ Ищем фильм и генерируем партнерские ссылки...', 'info', 2000);
     
     try {
-      // Проверяем, существует ли уже такой фильм
       const exists = isFilmExists(
         autoAddForm.title, 
         autoAddForm.year, 
@@ -401,20 +392,26 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
         window.dispatchEvent(new Event('filmsUpdated'));
       }
     } catch (error) {
-      showNotification('❌ Ошибка при добавлении', 'error');
       console.error('Auto add error:', error);
+      
+      if (error.message && error.message.startsWith('DUPLICATE:')) {
+        showNotification(error.message, 'error');
+      } else if (error.message && error.message.startsWith('NOT_FOUND:')) {
+        showNotification(error.message, 'error');
+      } else {
+        showNotification('❌ Ошибка при добавлении: ' + (error.message || 'Неизвестная ошибка'), 'error');
+      }
     } finally {
       setIsLoading(false);
     }
   };
   
-  // Массовое добавление фильмов с учетом выбранного типа
+  // Массовое добавление фильмов
   const parseBulkText = (text) => {
     const lines = text.split('\n').filter(line => line.trim() !== '');
     const filmsList = [];
     
     lines.forEach(line => {
-      // Формат: "Название, год" или просто "Название"
       const parts = line.split(',').map(p => p.trim());
       const title = parts[0];
       const year = parts.length > 1 ? parts[1] : '';
@@ -456,14 +453,13 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
     setBulkAddResults([]);
     
     const results = [];
-    const addedInThisBatch = new Set(); // Отслеживаем дубликаты в текущей сессии
+    const addedInThisBatch = new Set();
     
     for (let i = 0; i < filmsToAdd.length; i++) {
       const film = filmsToAdd[i];
       setBulkProgress({ current: i + 1, total: filmsToAdd.length });
       
       try {
-        // Проверяем, существует ли уже такой фильм (с учетом уже добавленных в этой сессии)
         const exists = isFilmExists(film.title, film.year, film.contentType, addedInThisBatch);
         
         if (exists) {
@@ -481,7 +477,6 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
           );
           
           if (result) {
-            // Добавляем в Set для отслеживания дубликатов в этой сессии
             const key = `${film.contentType}_${film.title.toLowerCase().trim()}_${film.year || ''}`;
             addedInThisBatch.add(key);
             
@@ -491,25 +486,26 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
               status: 'success',
               message: `✅ Добавлен (${film.contentType === 'movie' ? 'Фильм' : film.contentType === 'series' ? 'Сериал' : 'Мультфильм'}${yearText})`
             });
-          } else {
-            results.push({
-              title: film.title,
-              status: 'error',
-              message: `❌ Ошибка при добавлении`
-            });
           }
         }
       } catch (error) {
+        let message = '';
+        if (error.message && error.message.startsWith('DUPLICATE:')) {
+          message = error.message;
+        } else if (error.message && error.message.startsWith('NOT_FOUND:')) {
+          message = error.message;
+        } else {
+          message = `❌ Ошибка: ${error.message || 'Неизвестная ошибка'}`;
+        }
+        
         results.push({
           title: film.title,
           status: 'error',
-          message: `❌ Ошибка: ${error.message}`
+          message: message
         });
       }
       
       setBulkAddResults([...results]);
-      
-      // Задержка между добавлениями для безопасности
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
     
@@ -549,7 +545,6 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
     if (row) {
       setSelectedRow(row);
       setActiveTab('manageRow');
-      // Сбрасываем состояния
       setSelectedFilmIds([]);
       setIsDraggingSelect(false);
       setSelectType(null);
@@ -750,7 +745,6 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
         
         if (success) {
           showNotification('✅ Фильм удален из базы и всех рядов', 'success');
-          
           updateData();
           
           if (selectedRow) {
@@ -774,6 +768,7 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
     }
   };
   
+  // ИСПРАВЛЕННАЯ ФУНКЦИЯ РЕДАКТИРОВАНИЯ
   const handleEditFilm = (film) => {
     setFilmEditData({
       id: film.id,
@@ -785,7 +780,7 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
       duration: film.duration || '',
       seasons: film.seasons || '1',
       country: film.country || '',
-      partner: film.partner || 'OKKO',
+      partner: film.partner ? film.partner.toUpperCase() : 'OKKO',
       tags: Array.isArray(film.tags) ? film.tags.join(', ') : (film.tags || ''),
       img: film.img || '',
       description: film.description || '',
@@ -806,15 +801,21 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
     setEditFilm(film);
   };
   
+  // ИСПРАВЛЕННАЯ ФУНКЦИЯ СОХРАНЕНИЯ
   const handleSaveFilmEdit = async () => {
-    if (!filmEditData.id) return;
+    if (!filmEditData.id) {
+      showNotification('ID фильма не найден', 'error');
+      return;
+    }
+    
+    setIsLoading(true);
     
     try {
       const tagsArray = filmEditData.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
       
       const updatedFilm = {
         title: filmEditData.title,
-        year: filmEditData.year,
+        year: parseInt(filmEditData.year) || new Date().getFullYear(),
         rating: parseFloat(filmEditData.rating) || 7.0,
         genre: filmEditData.genre,
         content_type: filmEditData.contentType,
@@ -833,22 +834,31 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
         updated_at: new Date().toISOString()
       };
       
-      const success = await filmManager.updateFilmInSupabase(filmEditData.id, updatedFilm);
+      // ИСПРАВЛЕНО: используем правильный метод updateFilmInAPI
+      const success = await filmManager.updateFilmInAPI(filmEditData.id, updatedFilm);
+      
       if (success) {
+        // Обновляем локальный массив фильмов
         const filmIndex = filmManager.films.findIndex(f => f.id == filmEditData.id);
         if (filmIndex !== -1) {
           filmManager.films[filmIndex] = {
             ...filmManager.films[filmIndex],
             ...updatedFilm,
-            partnerLinks: filmEditData.partnerLinks
+            partnerLinks: filmEditData.partnerLinks,
+            contentType: filmEditData.contentType,
+            seasons: filmEditData.contentType === 'series' ? parseInt(filmEditData.seasons) : 1,
+            ageRating: filmEditData.ageRating,
+            trailerUrl: filmEditData.trailerUrl
           };
           
           localStorage.setItem('vzorkino_films_cache', JSON.stringify(filmManager.films));
         }
         
-        showNotification('✅ Фильм обновлен', 'success');
+        showNotification('✅ Фильм успешно обновлен', 'success');
         updateData();
         window.dispatchEvent(new Event('filmsUpdated'));
+        
+        // Закрываем модальное окно редактирования
         setEditFilm(null);
         setFilmEditData({
           id: null,
@@ -866,6 +876,8 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
           description: '',
           director: '',
           actors: '',
+          ageRating: '16+',
+          trailerUrl: '',
           partnerLinks: {
             okko: '',
             ivi: '',
@@ -875,10 +887,14 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
             kinopoisk: ''
           }
         });
+      } else {
+        showNotification('❌ Ошибка при обновлении фильма', 'error');
       }
     } catch (error) {
       console.error('Save error:', error);
-      showNotification('❌ Ошибка обновления фильма', 'error');
+      showNotification('❌ Ошибка обновления фильма: ' + (error.message || 'Неизвестная ошибка'), 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -894,6 +910,10 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
             width="40" 
             height="60" 
             style={{ objectFit: 'cover', borderRadius: '4px' }}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = filmManager.generatePlaceholder(film.title);
+            }}
           />
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: '600', color: '#fff' }}>
@@ -1409,7 +1429,6 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
     const modalFilms = filmManager.getCustomRowFilms(selectedRow.id, 'modal');
     const availableFilms = films.filter(f => !modalFilms.some(mf => mf.id === f.id));
     
-    // Фильтрованные списки для поиска (левая колонка)
     const filteredAvailableFilms = modalSearchQuery.trim() === '' 
       ? availableFilms 
       : availableFilms.filter(film => {
@@ -1419,7 +1438,6 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
                  (film.genre && film.genre.toLowerCase().includes(query));
         });
     
-    // Фильтрованные списки для поиска (правая колонка)
     const availableForRow = modalFilms.filter(f => !rowFilms.some(rf => rf.id === f.id));
     const filteredRowFilms = rowSearchQuery.trim() === ''
       ? availableForRow
@@ -1430,7 +1448,6 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
                  (film.genre && film.genre.toLowerCase().includes(query));
         });
     
-    // Функция для рендера опций с поддержкой мультивыбора
     const renderFilmOptions = (filmsList, type) => {
       if (filmsList.length === 0) {
         return (
@@ -1496,7 +1513,6 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
         </div>
         
         <div className="admin-row-sections">
-          {/* Левая колонка - Добавление в модальное окно и список модальных фильмов */}
           <div className="admin-row-section">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
               <h4 style={{ margin: 0 }}>➕ Добавить фильм в модальное окно</h4>
@@ -1510,7 +1526,6 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
               </button>
             </div>
             
-            {/* Поиск в левой колонке */}
             {isModalSearchOpen && (
               <div style={{ marginBottom: '15px' }}>
                 <input
@@ -1617,7 +1632,6 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
             </div>
           </div>
           
-          {/* Правая колонка - Добавление в ряд и список фильмов в ряду */}
           <div className="admin-row-section">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
               <h4 style={{ margin: 0 }}>➕ Добавить фильм в ряд (макс {selectedRow.maxRowItems})</h4>
@@ -1631,7 +1645,6 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
               </button>
             </div>
             
-            {/* Поиск в правой колонке */}
             {isRowSearchOpen && (
               <div style={{ marginBottom: '15px' }}>
                 <input
@@ -1939,7 +1952,6 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
                   <h3>Автоматическое добавление контента</h3>
                   
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
-                    {/* Левая колонка - одиночное добавление */}
                     <div>
                       <h4>Одиночное добавление</h4>
                       <div className="admin-form">
@@ -1976,7 +1988,6 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
                       </div>
                     </div>
                     
-                    {/* Правая колонка - массовое добавление */}
                     <div>
                       <h4>Массовое добавление</h4>
                       <div className="admin-form">
@@ -2039,7 +2050,6 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
                           ) : `📦 Добавить несколько (как ${bulkContentType === 'movie' ? 'Фильмы' : bulkContentType === 'series' ? 'Сериалы' : 'Мультфильмы'})`}
                         </button>
                         
-                        {/* Результаты массового добавления */}
                         {bulkAddResults.length > 0 && (
                           <div style={{
                             marginTop: '20px',
@@ -2126,7 +2136,6 @@ const AdminPanel = ({ onClose, visible, filmManager }) => {
                 <div className="admin-all-films">
                   <h3>Всего фильмов: {films.length}</h3>
                   
-                  {/* Поиск */}
                   <div className="admin-search" style={{ marginBottom: '20px' }}>
                     <input
                       type="text"
