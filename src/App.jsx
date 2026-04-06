@@ -13,6 +13,7 @@ import PrivacyPage from './pages/PrivacyPage';
 import ProfilePage from './pages/ProfilePage';
 import AboutPage from './pages/AboutPage';
 import FAQPage from './pages/FAQPage';
+import SearchPage from './pages/SearchPage';
 import AdminPanel from './components/AdminPanel';
 import { filmManager } from './services/filmManager';
 import { initTracking, hasTrackingConsent } from './utils/userId';
@@ -263,6 +264,14 @@ function App() {
               />
             } />
             
+            {/* Страница поиска */}
+            <Route path="/search" element={
+              <SearchPage 
+                films={films}
+                filmManager={filmManager}
+              />
+            } />
+            
             {/* Страница деталей фильма */}
             <Route path="/movie/:id" element={
               <MovieDetailPage filmManager={filmManager} films={films} />
@@ -274,29 +283,6 @@ function App() {
                 films={films}
                 filmManager={filmManager}
               />
-            } />
-            
-            {/* Страница поиска */}
-            <Route path="/search" element={
-              <div className="page-content">
-                <div className="content-wrapper-1100">
-                  <h1>🔍 Поиск</h1>
-                  <p style={{ color: '#aaa', marginTop: '20px' }}>
-                    Функция поиска скоро появится! Мы работаем над тем, чтобы вы могли быстро находить любимые фильмы и сериалы.
-                  </p>
-                  <div style={{ 
-                    marginTop: '40px', 
-                    padding: '30px', 
-                    background: 'rgba(255,106,43,0.1)', 
-                    borderRadius: '16px',
-                    border: '1px solid rgba(255,106,43,0.3)'
-                  }}>
-                    <p style={{ color: '#fff' }}>
-                      💡 А пока вы можете использовать фильтры на страницах фильмов, сериалов и мультфильмов.
-                    </p>
-                  </div>
-                </div>
-              </div>
             } />
             
             {/* Страница профиля */}
