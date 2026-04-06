@@ -399,3 +399,35 @@
     font-size: 25px !important;
   }
 }
+/* Стили для About, FAQ, Privacy страниц в светлой теме */
+
+[data-theme="light"] .about-section,
+[data-theme="light"] .faq-item,
+[data-theme="light"] .privacy-section {
+  background: #ffffff;
+}
+
+[data-theme="light"] .about-section p,
+[data-theme="light"] .faq-answer,
+[data-theme="light"] .privacy-section p,
+[data-theme="light"] .privacy-section li {
+  color: #1a1a1a !important;
+}
+
+[data-theme="light"] .about-section h2,
+[data-theme="light"] .faq-question,
+[data-theme="light"] .privacy-section h2 {
+  color: #1a1a1a !important;
+}
+
+[data-theme="light"] .feature-card {
+  background: #ffffff;
+}
+
+[data-theme="light"] .feature-card h3 {
+  color: #1a1a1a !important;
+}
+
+[data-theme="light"] .feature-card p {
+  color: #1a1a1a !important;
+}
