@@ -567,3 +567,50 @@
     }
   }
 }
+/* Стили для иконки подписок в шапке */
+.subscriptions-trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.subscriptions-trigger:hover {
+    color: var(--text-primary);
+    transform: scale(1.05);
+}
+
+.subscriptions-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    transition: transform 0.3s ease;
+}
+
+.subscriptions-trigger:hover .subscriptions-icon {
+    transform: scale(1.1);
+}
+
+.subscriptions-text {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+/* Мобильные стили */
+@media (max-width: 768px) {
+    .subscriptions-trigger {
+        padding: 4px;
+    }
+    
+    .subscriptions-text {
+        display: none;
+    }
+}
