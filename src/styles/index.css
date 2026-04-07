@@ -32,6 +32,7 @@
 @import './pages/content.css';
 @import './pages/profile.css';
 @import './pages/search.css';  /* <--- СТИЛИ СТРАНИЦЫ ПОИСКА (добавьте эту строку) */
+@import './pages/subscriptions.css';
 
 /* Responsive - всегда последний */
 @import './modules/responsive.css';
