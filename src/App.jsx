@@ -14,6 +14,7 @@ import ProfilePage from './pages/ProfilePage';
 import AboutPage from './pages/AboutPage';
 import FAQPage from './pages/FAQPage';
 import SearchPage from './pages/SearchPage';
+import SubscriptionsPage from './pages/SubscriptionsPage';
 import AdminPanel from './components/AdminPanel';
 import { filmManager } from './services/filmManager';
 import { initTracking, hasTrackingConsent } from './utils/userId';
@@ -271,6 +272,9 @@ function App() {
                 filmManager={filmManager}
               />
             } />
+            
+            {/* Страница подписок */}
+            <Route path="/subscriptions" element={<SubscriptionsPage />} />
             
             {/* Страница деталей фильма */}
             <Route path="/movie/:id" element={
