@@ -15,6 +15,7 @@ import AboutPage from './pages/AboutPage';
 import FAQPage from './pages/FAQPage';
 import SearchPage from './pages/SearchPage';
 import SubscriptionsPage from './pages/SubscriptionsPage';
+import NewsPage from './pages/NewsPage'; // <-- ИМПОРТ СТРАНИЦЫ НОВОСТЕЙ
 import AdminPanel from './components/AdminPanel';
 import { filmManager } from './services/filmManager';
 import { initTracking, hasTrackingConsent } from './utils/userId';
@@ -30,18 +31,17 @@ function App() {
   const [keySequence, setKeySequence] = useState('');
   const [trackingEnabled, setTrackingEnabled] = useState(false);
   
-  // Инициализация отслеживания пользователя (НЕ создает ID, только проверяет)
+  // ... (весь существующий код useEffect и функций остается без изменений) ...
+  
+  // Инициализация отслеживания пользователя
   useEffect(() => {
     const trackingInfo = initTracking();
     setTrackingEnabled(trackingInfo.trackingEnabled);
     console.log('🔍 Инициализация трекинга:', trackingInfo.trackingEnabled ? 'включен' : 'отключен');
     
-    // Слушаем изменения согласия на cookie
     const handleConsentChange = (event) => {
       setTrackingEnabled(event.detail?.accepted || false);
-      // Если согласие дано, можно обновить данные профиля
       if (event.detail?.accepted) {
-        // Профиль уже создан в handleCookieAccept, просто обновляем состояние
         console.log('✅ Cookie приняты, трекинг включен');
       } else {
         console.log('❌ Cookie отклонены, трекинг отключен');
@@ -55,7 +55,7 @@ function App() {
     };
   }, []);
   
-  // Секретная комбинация для вызова админ-панели (только триггер!)
+  // Секретная комбинация для вызова админ-панели
   useEffect(() => {
     const handleKeyPress = (e) => {
       const newSequence = keySequence + e.key;
@@ -90,7 +90,6 @@ function App() {
     
     init();
     
-    // Слушаем события обновления данных
     const handleFilmsUpdated = () => {
       setFilms([...filmManager.films]);
     };
@@ -108,7 +107,7 @@ function App() {
     };
   }, []);
   
-  // Создаем простые эффекты в сайдбарах (декоративные элементы)
+  // Создаем простые эффекты в сайдбарах
   useEffect(() => {
     const createSidebarEffects = () => {
       const leftSidebar = document.getElementById('left-sidebar');
@@ -275,6 +274,9 @@ function App() {
             
             {/* Страница подписок */}
             <Route path="/subscriptions" element={<SubscriptionsPage />} />
+            
+            {/* НОВЫЙ МАРШРУТ ДЛЯ НОВОСТЕЙ */}
+            <Route path="/news" element={<NewsPage />} />
             
             {/* Страница деталей фильма */}
             <Route path="/movie/:id" element={
