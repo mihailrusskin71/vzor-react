@@ -3,6 +3,7 @@ import { hasTrackingConsent } from './userId';
 
 const SUBSCRIPTIONS_KEY = 'vzorkino_subscriptions';
 const NOTIFICATIONS_KEY = 'vzorkino_subscription_notifications';
+const REMINDERS_STORE_KEY = 'vzorkino_subscription_reminders';
 const MAX_SUBSCRIPTIONS = 10;
 
 export const PARTNERS_FOR_SUBSCRIPTIONS = [
@@ -18,8 +19,50 @@ class SubscriptionManager {
   constructor() {
     this.subscriptions = [];
     this.notificationsEnabled = false;
+    this.shownReminders = this.loadShownRemindersFromStorage();
     this.loadFromStorage();
-    this.checkExpiringSoon();
+    this.checkAndShowReminders();
+  }
+
+  loadShownRemindersFromStorage() {
+    try {
+      const saved = localStorage.getItem(REMINDERS_STORE_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  saveShownRemindersToStorage(reminders) {
+    localStorage.setItem(REMINDERS_STORE_KEY, JSON.stringify(reminders));
+    window.dispatchEvent(new CustomEvent('remindersUpdated', { detail: { reminders } }));
+  }
+
+  addShownReminder(subscription) {
+    // Проверяем, нет ли уже такого напоминания
+    const exists = this.shownReminders.some(r => r.id === subscription.id);
+    if (!exists) {
+      this.shownReminders.push({
+        id: subscription.id,
+        partnerName: subscription.partnerName,
+        plan: subscription.plan,
+        endDate: subscription.endDate,
+        partnerId: subscription.partnerId,
+        shownAt: new Date().toISOString()
+      });
+      this.saveShownRemindersToStorage(this.shownReminders);
+    }
+  }
+
+  getShownReminders() {
+    // Фильтруем только те, которые ещё не истекли
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return this.shownReminders.filter(sub => {
+      const endDate = new Date(sub.endDate);
+      endDate.setHours(0, 0, 0, 0);
+      return endDate >= today;
+    });
   }
 
   loadFromStorage() {
@@ -29,7 +72,8 @@ class SubscriptionManager {
         this.subscriptions = JSON.parse(saved).map(sub => ({
           ...sub,
           startDate: new Date(sub.startDate),
-          endDate: new Date(sub.endDate)
+          endDate: new Date(sub.endDate),
+          lastRemindedAt: sub.lastRemindedAt ? new Date(sub.lastRemindedAt) : null
         }));
       }
       
@@ -46,11 +90,11 @@ class SubscriptionManager {
       const toSave = this.subscriptions.map(sub => ({
         ...sub,
         startDate: sub.startDate.toISOString(),
-        endDate: sub.endDate.toISOString()
+        endDate: sub.endDate.toISOString(),
+        lastRemindedAt: sub.lastRemindedAt ? sub.lastRemindedAt.toISOString() : null
       }));
       localStorage.setItem(SUBSCRIPTIONS_KEY, JSON.stringify(toSave));
       
-      // Триггерим событие обновления
       window.dispatchEvent(new CustomEvent('subscriptionsUpdated', { 
         detail: { subscriptions: this.subscriptions } 
       }));
@@ -83,9 +127,7 @@ class SubscriptionManager {
       return null;
     }
 
-    // Парсим цену из строки (убираем всё кроме цифр)
     let priceValue = subscription.price || PARTNERS_FOR_SUBSCRIPTIONS.find(p => p.id === subscription.partnerId)?.price || '0 ₽';
-    // Если цена уже в формате с валютой, оставляем как есть
     if (!priceValue.includes('₽')) {
       priceValue = `${parseInt(priceValue) || 0} ₽`;
     }
@@ -114,7 +156,6 @@ class SubscriptionManager {
     const index = this.subscriptions.findIndex(sub => sub.id === id);
     if (index === -1) return null;
 
-    // Если обновляется цена, форматируем её
     let price = updates.price;
     if (price && !price.includes('₽')) {
       price = `${parseInt(price) || 0} ₽`;
@@ -125,7 +166,8 @@ class SubscriptionManager {
       ...updates,
       price: price || this.subscriptions[index].price,
       startDate: updates.startDate ? new Date(updates.startDate) : this.subscriptions[index].startDate,
-      endDate: updates.endDate ? new Date(updates.endDate) : this.subscriptions[index].endDate
+      endDate: updates.endDate ? new Date(updates.endDate) : this.subscriptions[index].endDate,
+      lastRemindedAt: updates.lastRemindedAt !== undefined ? updates.lastRemindedAt : this.subscriptions[index].lastRemindedAt
     };
     
     this.saveToStorage();
@@ -134,6 +176,9 @@ class SubscriptionManager {
 
   deleteSubscription(id) {
     this.subscriptions = this.subscriptions.filter(sub => sub.id !== id);
+    // Удаляем из показанных напоминаний
+    this.shownReminders = this.shownReminders.filter(r => r.id !== id);
+    this.saveShownRemindersToStorage(this.shownReminders);
     this.saveToStorage();
     return true;
   }
@@ -189,19 +234,39 @@ class SubscriptionManager {
     });
   }
 
-  checkExpiringSoon() {
-    const expiring = this.getExpiringSoon();
-    if (expiring.length > 0 && this.notificationsEnabled) {
-      const today = new Date().toDateString();
-      expiring.forEach(sub => {
-        const lastReminded = sub.lastRemindedAt ? new Date(sub.lastRemindedAt).toDateString() : null;
-        if (lastReminded !== today) {
-          this.showNotification(sub);
-          this.updateSubscription(sub.id, { lastRemindedAt: new Date() });
-        }
-      });
-    }
-    return expiring;
+  getSubscriptionsNeedingReminder() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return this.subscriptions.filter(sub => {
+      const endDate = new Date(sub.endDate);
+      endDate.setHours(0, 0, 0, 0);
+      if (endDate < today) return false;
+      
+      const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+      if (daysLeft > sub.reminderDays) return false;
+      
+      const lastReminded = sub.lastRemindedAt ? new Date(sub.lastRemindedAt) : null;
+      if (lastReminded && lastReminded.toDateString() === today.toDateString()) return false;
+      
+      return true;
+    });
+  }
+
+  markReminderShown(id) {
+    const index = this.subscriptions.findIndex(sub => sub.id === id);
+    if (index === -1) return;
+    this.subscriptions[index].lastRemindedAt = new Date();
+    this.saveToStorage();
+  }
+
+  checkAndShowReminders() {
+    const needingReminder = this.getSubscriptionsNeedingReminder();
+    needingReminder.forEach(sub => {
+      this.showNotification(sub);
+      this.addShownReminder(sub);
+      this.markReminderShown(sub.id);
+    });
   }
 
   showNotification(subscription) {
@@ -233,15 +298,15 @@ class SubscriptionManager {
     `;
     
     document.body.appendChild(notificationDiv);
-    
     setTimeout(() => notificationDiv.classList.add('show'), 10);
     
-    setTimeout(() => {
+    const hideTimeout = setTimeout(() => {
       notificationDiv.classList.remove('show');
       setTimeout(() => notificationDiv.remove(), 300);
-    }, 10000);
+    }, 5000);
     
     notificationDiv.querySelector('.notification-close').onclick = () => {
+      clearTimeout(hideTimeout);
       notificationDiv.classList.remove('show');
       setTimeout(() => notificationDiv.remove(), 300);
     };
