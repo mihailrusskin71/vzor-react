@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUserProfile, clearWatchHistory, clearSavedFilms, clearAllHistory, hasTrackingConsent } from '../utils/userId';
+import { subscriptionManager, PARTNERS_FOR_SUBSCRIPTIONS } from '../utils/subscriptionManager';
 import MovieCard from '../components/MovieCard';
 
 const ProfilePage = ({ filmManager }) => {
@@ -14,8 +15,8 @@ const ProfilePage = ({ filmManager }) => {
   const [trackingEnabled, setTrackingEnabled] = useState(false);
   const [isLightTheme, setIsLightTheme] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [reminders, setReminders] = useState([]);
 
-  // Загрузка сохраненной темы при монтировании - ОДИН РАЗ
   useEffect(() => {
     const savedTheme = localStorage.getItem('vzorkino_theme');
     
@@ -26,14 +27,12 @@ const ProfilePage = ({ filmManager }) => {
       setIsLightTheme(false);
       document.documentElement.setAttribute('data-theme', 'dark');
     } else {
-      // По умолчанию тёмная тема
       setIsLightTheme(false);
       document.documentElement.setAttribute('data-theme', 'dark');
     }
     setIsInitialized(true);
   }, []);
 
-  // Применение темы при изменении - НЕ СБРАСЫВАЕМ ПРИ ПЕРЕХОДАХ
   useEffect(() => {
     if (!isInitialized) return;
     
@@ -56,11 +55,16 @@ const ProfilePage = ({ filmManager }) => {
     }
     
     loadProfile();
+    loadReminders();
     
     const handleSavedUpdate = () => {
       if (hasTrackingConsent()) {
         refreshSavedFilms();
       }
+    };
+    
+    const handleRemindersUpdate = () => {
+      loadReminders();
     };
     
     const handleConsentChange = (event) => {
@@ -69,18 +73,22 @@ const ProfilePage = ({ filmManager }) => {
       
       if (accepted) {
         loadProfile();
+        loadReminders();
       } else {
         setProfile(null);
         setSavedFilms([]);
+        setReminders([]);
         setLoading(false);
       }
     };
     
     window.addEventListener('savedFilmsUpdated', handleSavedUpdate);
+    window.addEventListener('remindersUpdated', handleRemindersUpdate);
     window.addEventListener('cookieConsentChanged', handleConsentChange);
     
     return () => {
       window.removeEventListener('savedFilmsUpdated', handleSavedUpdate);
+      window.removeEventListener('remindersUpdated', handleRemindersUpdate);
       window.removeEventListener('cookieConsentChanged', handleConsentChange);
     };
   }, []);
@@ -107,6 +115,12 @@ const ProfilePage = ({ filmManager }) => {
     }
     
     setLoading(false);
+  };
+
+  const loadReminders = () => {
+    // Получаем напоминания, которые уже были показаны на экране
+    const shownReminders = subscriptionManager.getShownReminders();
+    setReminders(shownReminders);
   };
 
   const refreshSavedFilms = () => {
@@ -252,7 +266,6 @@ const ProfilePage = ({ filmManager }) => {
               <span>🔖 Сохранено: {profile.saved_films?.length || 0}</span>
             </div>
           </div>
-          {/* Кнопка переключения темы в правой части хедера профиля */}
           <div className="profile-theme-toggle">
             <button 
               className="theme-toggle-btn"
@@ -298,6 +311,12 @@ const ProfilePage = ({ filmManager }) => {
             onClick={() => setActiveTab('history')}
           >
             История просмотров ({profile.watch_history?.length || 0})
+          </button>
+          <button 
+            className={`profile-tab ${activeTab === 'reminders' ? 'active' : ''}`}
+            onClick={() => setActiveTab('reminders')}
+          >
+            Напоминания ({reminders.length})
           </button>
         </div>
 
@@ -377,6 +396,52 @@ const ProfilePage = ({ filmManager }) => {
                     onClick={() => navigate('/movies')}
                   >
                     Начать просмотр
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+
+          {activeTab === 'reminders' && (
+            <>
+              {reminders.length > 0 ? (
+                <div className="reminders-list">
+                  {reminders.map(reminder => {
+                    const daysLeft = Math.ceil((new Date(reminder.endDate) - new Date()) / (1000 * 60 * 60 * 24));
+                    const partner = PARTNERS_FOR_SUBSCRIPTIONS.find(p => p.id === reminder.partnerId) 
+                      || { color: '#FF6A2B', icon: '/partner-icons/default.png', name: reminder.partnerName };
+                    return (
+                      <div key={reminder.id} className="reminder-item">
+                        <div className="reminder-icon">
+                          <img src={partner.icon} alt={reminder.partnerName} />
+                        </div>
+                        <div className="reminder-info">
+                          <h4>{reminder.partnerName} — {reminder.plan}</h4>
+                          <p>Заканчивается через {daysLeft} {daysLeft === 1 ? 'день' : daysLeft < 5 ? 'дня' : 'дней'}</p>
+                          <p className="reminder-date">
+                            {new Date(reminder.endDate).toLocaleDateString('ru-RU')}
+                          </p>
+                        </div>
+                        <button 
+                          className="reminder-goto-btn"
+                          onClick={() => navigate('/subscriptions')}
+                        >
+                          К подпискам
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="empty-state">
+                  <div className="empty-state-icon">🔔</div>
+                  <h3>Нет активных напоминаний</h3>
+                  <p>Здесь будут отображаться подписки, которые скоро заканчиваются. Напоминания появятся после того, как вы увидите уведомление на экране.</p>
+                  <button 
+                    className="primary-button"
+                    onClick={() => navigate('/subscriptions')}
+                  >
+                    Управлять подписками
                   </button>
                 </div>
               )}
