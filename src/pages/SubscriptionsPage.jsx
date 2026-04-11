@@ -15,6 +15,7 @@ const SubscriptionsPage = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [calendarDays, setCalendarDays] = useState([]);
   const [swipeState, setSwipeState] = useState({});
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   
   const [formData, setFormData] = useState({
     partnerId: 'okko',
@@ -30,6 +31,13 @@ const SubscriptionsPage = () => {
   const modalRef = useRef(null);
   const touchStartRef = useRef({});
   const hideTimeoutRef = useRef({});
+  const calendarRef = useRef(null);
+  
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   useEffect(() => {
     const consent = hasTrackingConsent();
@@ -37,6 +45,7 @@ const SubscriptionsPage = () => {
     
     if (consent) {
       loadSubscriptions();
+      subscriptionManager.checkAndShowReminders();
     }
     
     setTimeout(() => setAnimateIn(true), 100);
@@ -46,7 +55,6 @@ const SubscriptionsPage = () => {
     
     return () => {
       window.removeEventListener('subscriptionsUpdated', handleUpdate);
-      // Очищаем все таймеры
       Object.keys(hideTimeoutRef.current).forEach(id => {
         if (hideTimeoutRef.current[id]) clearTimeout(hideTimeoutRef.current[id]);
       });
@@ -55,7 +63,7 @@ const SubscriptionsPage = () => {
   
   useEffect(() => {
     generateCalendar();
-  }, [currentMonth, subscriptions]);
+  }, [currentMonth, subscriptions, isMobile]);
   
   const loadSubscriptions = () => {
     setSubscriptions(subscriptionManager.getSubscriptions());
@@ -118,10 +126,8 @@ const SubscriptionsPage = () => {
     setSelectedDateSubscriptions(subs);
   };
   
-  // Обработчики свайпа для мобильного удаления
   const handleTouchStart = (e, id) => {
     touchStartRef.current[id] = e.touches[0].clientX;
-    // Очищаем таймер скрытия если есть
     if (hideTimeoutRef.current[id]) {
       clearTimeout(hideTimeoutRef.current[id]);
       hideTimeoutRef.current[id] = null;
@@ -143,7 +149,6 @@ const SubscriptionsPage = () => {
     const state = swipeState[id];
     if (state && state.offset > 40) {
       setSwipeState(prev => ({ ...prev, [id]: { ...prev[id], offset: 80, showDelete: true } }));
-      // Устанавливаем таймер на скрытие через 3 секунды
       if (hideTimeoutRef.current[id]) clearTimeout(hideTimeoutRef.current[id]);
       hideTimeoutRef.current[id] = setTimeout(() => {
         setSwipeState(prev => ({ ...prev, [id]: { offset: 0, showDelete: false } }));
@@ -156,7 +161,6 @@ const SubscriptionsPage = () => {
   };
   
   const handleCardClick = (e, subscription) => {
-    // Если есть активная плашка удаления - не открываем редактирование
     const state = swipeState[subscription.id];
     if (state && state.showDelete) {
       e.stopPropagation();
@@ -167,15 +171,12 @@ const SubscriptionsPage = () => {
   
   const handleDeleteFromSwipe = (e, id) => {
     e.stopPropagation();
-    // Очищаем таймер
     if (hideTimeoutRef.current[id]) {
       clearTimeout(hideTimeoutRef.current[id]);
       hideTimeoutRef.current[id] = null;
     }
-    // Удаляем подписку
     subscriptionManager.deleteSubscription(id);
     loadSubscriptions();
-    // Сбрасываем состояние свайпа
     setSwipeState(prev => ({ ...prev, [id]: { offset: 0, showDelete: false } }));
     if (selectedSubscription?.id === id) {
       setSelectedSubscription(null);
@@ -277,29 +278,18 @@ const SubscriptionsPage = () => {
   
   const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
   
+  const maxCalendarDots = isMobile ? 2 : 3;
+  
   if (!trackingEnabled) {
     return (
       <div className="page-content">
         <div className="content-wrapper-1100">
           <div className={`subscriptions-page ${animateIn ? 'animate-in' : ''}`}>
             <div className="empty-state" style={{ marginTop: '60px' }}>
-              <div className="empty-state-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                  <line x1="16" y1="2" x2="16" y2="6" />
-                  <line x1="8" y1="2" x2="8" y2="6" />
-                  <line x1="3" y1="10" x2="21" y2="10" />
-                </svg>
-              </div>
+              <div className="empty-state-icon">📅</div>
               <h3>Трекинг отключен</h3>
-              <p>
-                Для управления подписками необходимо принять политику конфиденциальности.
-                Это нужно для сохранения ваших данных о подписках.
-              </p>
-              <button 
-                className="primary-button"
-                onClick={() => window.location.href = '/'}
-              >
+              <p>Для управления подписками необходимо принять политику конфиденциальности.</p>
+              <button className="primary-button" onClick={() => window.location.href = '/'}>
                 Вернуться на главную
               </button>
             </div>
@@ -313,18 +303,9 @@ const SubscriptionsPage = () => {
     <div className="page-content">
       <div className="content-wrapper-1100">
         <div className={`subscriptions-page ${animateIn ? 'animate-in' : ''}`}>
-          {/* Заголовок */}
           <div className="subscriptions-header">
             <div className="subscriptions-title-section">
-              <h1 className="subscriptions-title">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                  <line x1="16" y1="2" x2="16" y2="6" />
-                  <line x1="8" y1="2" x2="8" y2="6" />
-                  <line x1="3" y1="10" x2="21" y2="10" />
-                </svg>
-                Мои подписки
-              </h1>
+              <h1 className="subscriptions-title">Мои подписки</h1>
               <p className="subscriptions-subtitle">
                 Управляйте подписками на онлайн-кинотеатры, получайте напоминания об окончании
               </p>
@@ -341,7 +322,6 @@ const SubscriptionsPage = () => {
             </button>
           </div>
           
-          {/* Статистика */}
           <div className="subscriptions-stats">
             <div className="stat-card">
               <div className="stat-icon">
@@ -397,33 +377,20 @@ const SubscriptionsPage = () => {
             </div>
           </div>
           
-          {/* Календарь */}
           <div className="calendar-section">
-            <h2 className="section-heading-with-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                <line x1="8" y1="2" x2="8" y2="6" />
-                <line x1="16" y1="2" x2="16" y2="6" />
-                <line x1="3" y1="10" x2="21" y2="10" />
-              </svg>
-              Календарь подписок
-            </h2>
+            <h2 className="section-heading-with-icon"></h2>
             
-            <div className="subscription-calendar">
+            <div className="subscription-calendar" ref={calendarRef}>
               <div className="calendar-header">
-                <button className="calendar-nav-btn" onClick={prevMonth}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="15 18 9 12 15 6" />
-                  </svg>
+                <button className="calendar-nav-btn" onClick={prevMonth} aria-label="Предыдущий месяц">
+                  <span className="nav-arrow-left">◀</span>
                 </button>
                 <div className="calendar-month-year">
                   <span className="calendar-month">{monthNames[currentMonth.getMonth()]}</span>
                   <span className="calendar-year">{currentMonth.getFullYear()}</span>
                 </div>
-                <button className="calendar-nav-btn" onClick={nextMonth}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
+                <button className="calendar-nav-btn" onClick={nextMonth} aria-label="Следующий месяц">
+                  <span className="nav-arrow-right">▶</span>
                 </button>
               </div>
               
@@ -445,7 +412,7 @@ const SubscriptionsPage = () => {
                         <span className="day-number">{day.day}</span>
                         {day.subscriptions.length > 0 && (
                           <div className="day-subscriptions">
-                            {day.subscriptions.slice(0, 3).map(sub => (
+                            {day.subscriptions.slice(0, maxCalendarDots).map(sub => (
                               <div 
                                 key={sub.id} 
                                 className="day-subscription-dot"
@@ -453,8 +420,8 @@ const SubscriptionsPage = () => {
                                 title={sub.partnerName}
                               />
                             ))}
-                            {day.subscriptions.length > 3 && (
-                              <span className="day-subscription-more">+{day.subscriptions.length - 3}</span>
+                            {day.subscriptions.length > maxCalendarDots && (
+                              <span className="day-subscription-more">+{day.subscriptions.length - maxCalendarDots}</span>
                             )}
                           </div>
                         )}
@@ -467,16 +434,11 @@ const SubscriptionsPage = () => {
             
             {selectedDate && selectedDateSubscriptions && selectedDateSubscriptions.length > 0 && (
               <div className="selected-date-info">
-                <h4>
-                  {selectedDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
-                </h4>
+                <h4>{selectedDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}</h4>
                 <div className="selected-date-subscriptions">
                   {selectedDateSubscriptions.map(sub => (
                     <div key={sub.id} className="selected-subscription-item">
-                      <div 
-                        className="subscription-color-dot"
-                        style={{ backgroundColor: PARTNERS_FOR_SUBSCRIPTIONS.find(p => p.id === sub.partnerId)?.color }}
-                      />
+                      <div className="subscription-color-dot" style={{ backgroundColor: PARTNERS_FOR_SUBSCRIPTIONS.find(p => p.id === sub.partnerId)?.color }} />
                       <span className="subscription-name">{sub.partnerName}</span>
                       <span className="subscription-plan">{sub.plan}</span>
                     </div>
@@ -486,19 +448,12 @@ const SubscriptionsPage = () => {
             )}
           </div>
           
-          {/* Список подписок с поддержкой свайпа */}
           <div className="subscriptions-list-section">
             <div className="subscriptions-tabs">
-              <button 
-                className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
-                onClick={() => setActiveTab('active')}
-              >
+              <button className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`} onClick={() => setActiveTab('active')}>
                 Активные ({activeSubscriptions.length})
               </button>
-              <button 
-                className={`tab-btn ${activeTab === 'expired' ? 'active' : ''}`}
-                onClick={() => setActiveTab('expired')}
-              >
+              <button className={`tab-btn ${activeTab === 'expired' ? 'active' : ''}`} onClick={() => setActiveTab('expired')}>
                 Истекшие ({expiredSubscriptions.length})
               </button>
             </div>
@@ -511,11 +466,7 @@ const SubscriptionsPage = () => {
                 const showDelete = swipeState[subscription.id]?.showDelete || false;
                 
                 return (
-                  <div 
-                    key={subscription.id} 
-                    className={`subscription-card-wrapper ${daysLeft <= 3 && daysLeft >= 0 ? 'expiring' : ''}`}
-                    style={{ '--animation-order': index }}
-                  >
+                  <div key={subscription.id} className={`subscription-card-wrapper ${daysLeft <= 3 && daysLeft >= 0 ? 'expiring' : ''}`}>
                     <div 
                       className="subscription-card"
                       style={{ transform: `translateX(-${swipeOffset}px)` }}
@@ -525,10 +476,7 @@ const SubscriptionsPage = () => {
                       onClick={(e) => handleCardClick(e, subscription)}
                     >
                       <div className="subscription-card-left">
-                        <div 
-                          className="subscription-icon"
-                          style={{ backgroundColor: `${partner?.color}20`, borderColor: partner?.color }}
-                        >
+                        <div className="subscription-icon" style={{ backgroundColor: `${partner?.color}20`, borderColor: partner?.color }}>
                           <img src={partner?.icon} alt={subscription.partnerName} />
                         </div>
                         <div className="subscription-info">
@@ -549,15 +497,12 @@ const SubscriptionsPage = () => {
                         {getStatusBadge(subscription)}
                         {daysLeft > 0 && daysLeft <= 30 && (
                           <div className="days-left">
-                            Осталось {daysLeft} {daysLeft % 10 === 1 && daysLeft % 100 !== 11 ? 'день' : daysLeft % 10 >= 2 && daysLeft % 10 <= 4 && (daysLeft % 100 < 10 || daysLeft % 100 >= 20) ? 'дня' : 'дней'}
+                            Осталось {daysLeft} {daysLeft === 1 ? 'день' : daysLeft < 5 ? 'дня' : 'дней'}
                           </div>
                         )}
                       </div>
                     </div>
-                    <div 
-                      className={`subscription-swipe-delete ${showDelete ? 'visible' : ''}`}
-                      onClick={(e) => handleDeleteFromSwipe(e, subscription.id)}
-                    >
+                    <div className={`subscription-swipe-delete ${showDelete ? 'visible' : ''}`} onClick={(e) => handleDeleteFromSwipe(e, subscription.id)}>
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
                         <path d="M3 6h18" />
                         <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
@@ -590,7 +535,6 @@ const SubscriptionsPage = () => {
         </div>
       </div>
       
-      {/* Модальное окно добавления подписки */}
       {showAddModal && (
         <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
           <div className="subscription-modal add-modal" ref={modalRef} onClick={(e) => e.stopPropagation()}>
@@ -606,28 +550,25 @@ const SubscriptionsPage = () => {
             
             <div className="modal-body">
               <div className="form-group">
-  <label>Онлайн-кинотеатр</label>
-  <div className="partner-select-grid three-cols">
-    {PARTNERS_FOR_SUBSCRIPTIONS.map(partner => (
-      <button
-        key={partner.id}
-        className={`partner-select-btn ${formData.partnerId === partner.id ? 'active' : ''}`}
-        onClick={() => setFormData({ ...formData, partnerId: partner.id })}
-      >
-        <img src={partner.icon} alt={partner.name} />
-        <span>{partner.name}</span>
-      </button>
-    ))}
-  </div>
-</div>
+                <label>Онлайн-кинотеатр</label>
+                <div className="partner-select-grid three-cols">
+                  {PARTNERS_FOR_SUBSCRIPTIONS.map(partner => (
+                    <button
+                      key={partner.id}
+                      className={`partner-select-btn ${formData.partnerId === partner.id ? 'active' : ''}`}
+                      onClick={() => setFormData({ ...formData, partnerId: partner.id })}
+                    >
+                      <img src={partner.icon} alt={partner.name} />
+                      <span>{partner.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
               
               <div className="form-row two-cols">
                 <div className="form-group">
                   <label>Тариф</label>
-                  <select 
-                    value={formData.plan}
-                    onChange={(e) => setFormData({ ...formData, plan: e.target.value })}
-                  >
+                  <select value={formData.plan} onChange={(e) => setFormData({ ...formData, plan: e.target.value })}>
                     <option value="Месячная">Месячная</option>
                     <option value="3 месяца">3 месяца</option>
                     <option value="6 месяцев">6 месяцев</option>
@@ -637,42 +578,26 @@ const SubscriptionsPage = () => {
                 
                 <div className="form-group">
                   <label>Стоимость (₽)</label>
-                  <input 
-                    type="number" 
-                    placeholder="199"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  />
+                  <input type="number" placeholder="199" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} />
                 </div>
               </div>
               
               <div className="form-row two-cols">
                 <div className="form-group">
                   <label>Дата начала</label>
-                  <input 
-                    type="date" 
-                    value={formData.startDate}
-                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                  />
+                  <input type="date" value={formData.startDate} onChange={(e) => setFormData({ ...formData, startDate: e.target.value })} />
                 </div>
                 
                 <div className="form-group">
                   <label>Дата окончания</label>
-                  <input 
-                    type="date" 
-                    value={formData.endDate}
-                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                  />
+                  <input type="date" value={formData.endDate} onChange={(e) => setFormData({ ...formData, endDate: e.target.value })} />
                 </div>
               </div>
               
               <div className="form-row two-cols">
                 <div className="form-group">
                   <label>Напоминать</label>
-                  <select 
-                    value={formData.reminderDays}
-                    onChange={(e) => setFormData({ ...formData, reminderDays: e.target.value })}
-                  >
+                  <select value={formData.reminderDays} onChange={(e) => setFormData({ ...formData, reminderDays: e.target.value })}>
                     <option value="1">За 1 день</option>
                     <option value="3">За 3 дня</option>
                     <option value="7">За 7 дней</option>
@@ -682,11 +607,7 @@ const SubscriptionsPage = () => {
                 
                 <div className="form-group checkbox">
                   <label>
-                    <input 
-                      type="checkbox" 
-                      checked={formData.autoRenew}
-                      onChange={(e) => setFormData({ ...formData, autoRenew: e.target.checked })}
-                    />
+                    <input type="checkbox" checked={formData.autoRenew} onChange={(e) => setFormData({ ...formData, autoRenew: e.target.checked })} />
                     Автопродление
                   </label>
                 </div>
@@ -694,12 +615,7 @@ const SubscriptionsPage = () => {
               
               <div className="form-group">
                 <label>Заметки</label>
-                <textarea 
-                  rows="2"
-                  placeholder="Дополнительная информация..."
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                />
+                <textarea rows="2" placeholder="Дополнительная информация..." value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} />
               </div>
             </div>
             
@@ -711,7 +627,6 @@ const SubscriptionsPage = () => {
         </div>
       )}
       
-      {/* Модальное окно редактирования подписки */}
       {selectedSubscription && (
         <div className="modal-overlay" onClick={() => setSelectedSubscription(null)}>
           <div className="subscription-modal" onClick={(e) => e.stopPropagation()}>
@@ -728,63 +643,37 @@ const SubscriptionsPage = () => {
             <div className="modal-body">
               <div className="form-group">
                 <label>Платформа</label>
-                <input 
-                  type="text" 
-                  value={selectedSubscription.partnerName}
-                  disabled
-                  style={{ opacity: 0.7 }}
-                />
+                <input type="text" value={selectedSubscription.partnerName} disabled style={{ opacity: 0.7 }} />
               </div>
               
               <div className="form-row two-cols">
                 <div className="form-group">
                   <label>Тариф</label>
-                  <input 
-                    type="text" 
-                    value={selectedSubscription.plan}
-                    onChange={(e) => setSelectedSubscription({ ...selectedSubscription, plan: e.target.value })}
-                  />
+                  <input type="text" value={selectedSubscription.plan} onChange={(e) => setSelectedSubscription({ ...selectedSubscription, plan: e.target.value })} />
                 </div>
                 
                 <div className="form-group">
                   <label>Стоимость</label>
-                  <input 
-                    type="text" 
-                    value={selectedSubscription.price.replace(' ₽', '')}
-                    onChange={(e) => setSelectedSubscription({ ...selectedSubscription, price: e.target.value })}
-                  />
+                  <input type="text" value={selectedSubscription.price.replace(' ₽', '')} onChange={(e) => setSelectedSubscription({ ...selectedSubscription, price: e.target.value })} />
                 </div>
               </div>
               
               <div className="form-row two-cols">
                 <div className="form-group">
                   <label>Дата начала</label>
-                  <input 
-                    type="date" 
-                    value={new Date(selectedSubscription.startDate).toISOString().split('T')[0]}
-                    disabled
-                    style={{ opacity: 0.7 }}
-                  />
+                  <input type="date" value={new Date(selectedSubscription.startDate).toISOString().split('T')[0]} disabled style={{ opacity: 0.7 }} />
                 </div>
                 
                 <div className="form-group">
                   <label>Дата окончания</label>
-                  <input 
-                    type="date" 
-                    value={new Date(selectedSubscription.endDate).toISOString().split('T')[0]}
-                    disabled
-                    style={{ opacity: 0.7 }}
-                  />
+                  <input type="date" value={new Date(selectedSubscription.endDate).toISOString().split('T')[0]} disabled style={{ opacity: 0.7 }} />
                 </div>
               </div>
               
               <div className="form-row two-cols">
                 <div className="form-group">
                   <label>Напоминать</label>
-                  <select 
-                    value={selectedSubscription.reminderDays}
-                    onChange={(e) => setSelectedSubscription({ ...selectedSubscription, reminderDays: parseInt(e.target.value) })}
-                  >
+                  <select value={selectedSubscription.reminderDays} onChange={(e) => setSelectedSubscription({ ...selectedSubscription, reminderDays: parseInt(e.target.value) })}>
                     <option value="1">За 1 день</option>
                     <option value="3">За 3 дня</option>
                     <option value="7">За 7 дней</option>
@@ -794,11 +683,7 @@ const SubscriptionsPage = () => {
                 
                 <div className="form-group checkbox">
                   <label>
-                    <input 
-                      type="checkbox" 
-                      checked={selectedSubscription.autoRenew}
-                      onChange={(e) => setSelectedSubscription({ ...selectedSubscription, autoRenew: e.target.checked })}
-                    />
+                    <input type="checkbox" checked={selectedSubscription.autoRenew} onChange={(e) => setSelectedSubscription({ ...selectedSubscription, autoRenew: e.target.checked })} />
                     Автопродление
                   </label>
                 </div>
@@ -806,22 +691,12 @@ const SubscriptionsPage = () => {
               
               <div className="form-group">
                 <label>Заметки</label>
-                <textarea 
-                  rows="2"
-                  value={selectedSubscription.notes}
-                  onChange={(e) => setSelectedSubscription({ ...selectedSubscription, notes: e.target.value })}
-                />
+                <textarea rows="2" value={selectedSubscription.notes} onChange={(e) => setSelectedSubscription({ ...selectedSubscription, notes: e.target.value })} />
               </div>
             </div>
             
             <div className="modal-footer">
-              <button 
-                className="delete-btn" 
-                onClick={() => {
-                  handleDeleteSubscription(selectedSubscription.id);
-                  setSelectedSubscription(null);
-                }}
-              >
+              <button className="delete-btn" onClick={() => { handleDeleteSubscription(selectedSubscription.id); setSelectedSubscription(null); }}>
                 Удалить
               </button>
               <button className="save-btn" onClick={handleUpdateSubscription}>Сохранить</button>
