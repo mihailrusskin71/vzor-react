@@ -13,7 +13,6 @@ const Layout = ({ children }) => {
     const [userProfile, setUserProfile] = useState(null);
 
     useEffect(() => {
-        // Загружаем профиль пользователя
         const profile = getUserProfile();
         setUserProfile(profile);
 
@@ -40,10 +39,10 @@ const Layout = ({ children }) => {
     }, [isMobileMenuOpen]);
 
     const handleSearchClick = (e) => {
-    e.preventDefault();
-    navigate('/search');
-    setIsMobileMenuOpen(false);
-};
+        e.preventDefault();
+        navigate('/search');
+        setIsMobileMenuOpen(false);
+    };
 
     const handleProfileClick = (e) => {
         e.preventDefault();
@@ -61,12 +60,10 @@ const Layout = ({ children }) => {
 
     return (
         <>
-            {/* Верхняя панель */}
             <div id="top-full-width-panel">
                 <div className="container">
                     <header className="site-header">
                         <div className="header-inner">
-                            {/* Левая часть: гамбургер + лого */}
                             <div className="header-left">
                                 {isMobile && (
                                     <button 
@@ -92,7 +89,6 @@ const Layout = ({ children }) => {
                                     <span className="brand">Vzor<span className="brand-x">Ros</span></span>
                                 </Link>
 
-                                {/* Десктопная навигация */}
                                 {!isMobile && (
                                     <nav className="main-nav">
                                         <NavLink 
@@ -124,8 +120,19 @@ const Layout = ({ children }) => {
                                 )}
                             </div>
 
-                            {/* Правая часть: поиск + профиль */}
                             <div className="header-actions">
+                                <NavLink 
+                                    to="/news" 
+                                    className="news-trigger"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                >
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/>
+                                        <path d="M18 14h-8M15 18h-5M18 10h-6"/>
+                                    </svg>
+                                    <span>Новости</span>
+                                </NavLink>
+
                                 <a 
                                     href="/search" 
                                     className="search-trigger"
@@ -139,28 +146,29 @@ const Layout = ({ children }) => {
                                     </div>
                                     {!isMobile && <span className="search-text">Поиск</span>}
                                 </a>
+                                
                                 <a 
-    href="/subscriptions" 
-    className="subscriptions-trigger"
-    onClick={(e) => {
-        e.preventDefault();
-        navigate('/subscriptions');
-        setIsMobileMenuOpen(false);
-    }}
->
-    <div className="subscriptions-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-            <circle cx="12" cy="15" r="1" />
-            <circle cx="16" cy="15" r="1" />
-            <circle cx="8" cy="15" r="1" />
-        </svg>
-    </div>
-    {!isMobile && <span className="subscriptions-text">Подписки</span>}
-</a>
+                                    href="/subscriptions" 
+                                    className="subscriptions-trigger"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        navigate('/subscriptions');
+                                        setIsMobileMenuOpen(false);
+                                    }}
+                                >
+                                    <div className="subscriptions-icon">
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                            <line x1="16" y1="2" x2="16" y2="6" />
+                                            <line x1="8" y1="2" x2="8" y2="6" />
+                                            <line x1="3" y1="10" x2="21" y2="10" />
+                                            <circle cx="12" cy="15" r="1" />
+                                            <circle cx="16" cy="15" r="1" />
+                                            <circle cx="8" cy="15" r="1" />
+                                        </svg>
+                                    </div>
+                                    {!isMobile && <span className="subscriptions-text">Подписки</span>}
+                                </a>
                                 
                                 <a 
                                     href="/profile" 
@@ -249,6 +257,21 @@ const Layout = ({ children }) => {
                                 </span>
                                 Мультфильмы
                             </NavLink>
+                            
+                            <NavLink 
+                                to="/news" 
+                                className={({ isActive }) => `mobile-nav-link ${isActive ? 'active' : ''}`}
+                                onClick={handleNavLinkClick}
+                            >
+                                <span className="mobile-nav-icon">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/>
+                                        <path d="M18 14h-8M15 18h-5M18 10h-6"/>
+                                    </svg>
+                                </span>
+                                Новости
+                            </NavLink>
+                            
                             <NavLink 
                                 to="/profile" 
                                 className={({ isActive }) => `mobile-nav-link ${isActive ? 'active' : ''}`}
@@ -266,20 +289,20 @@ const Layout = ({ children }) => {
                                 )}
                             </NavLink>
                             <NavLink 
-    to="/subscriptions" 
-    className={({ isActive }) => `mobile-nav-link ${isActive ? 'active' : ''}`}
-    onClick={handleNavLinkClick}
->
-    <span className="mobile-nav-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-        </svg>
-    </span>
-    Подписки
-</NavLink>
+                                to="/subscriptions" 
+                                className={({ isActive }) => `mobile-nav-link ${isActive ? 'active' : ''}`}
+                                onClick={handleNavLinkClick}
+                            >
+                                <span className="mobile-nav-icon">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                        <line x1="16" y1="2" x2="16" y2="6" />
+                                        <line x1="8" y1="2" x2="8" y2="6" />
+                                        <line x1="3" y1="10" x2="21" y2="10" />
+                                    </svg>
+                                </span>
+                                Подписки
+                            </NavLink>
                         </nav>
                         
                         <div className="mobile-menu-footer">
@@ -289,7 +312,6 @@ const Layout = ({ children }) => {
                 </>
             )}
 
-            {/* Основной контейнер */}
             <div id="main-container">
                 <div id="left-sidebar" className="sidebar">
                     <SidebarBackgroundEffects side="left" />
@@ -306,7 +328,6 @@ const Layout = ({ children }) => {
                 </div>
             </div>
 
-            {/* Нижняя панель */}
             <div id="bottom-full-width-panel">
                 <div className="container">
                     <footer className="site-footer">
@@ -323,29 +344,30 @@ const Layout = ({ children }) => {
                             </div>
                             
                             <div className="footer-links">
-    <div className="footer-column">
-        <h4>Партнёры</h4>
-        <a href="https://okko.tv" target="_blank" rel="noopener noreferrer">OKKO</a>
-        <a href="https://ivi.ru" target="_blank" rel="noopener noreferrer">IVI</a>
-        <a href="https://kion.ru" target="_blank" rel="noopener noreferrer">KION</a>
-        <a href="https://premier.one" target="_blank" rel="noopener noreferrer">Premier</a>
-        <a href="https://kinopoisk.ru" target="_blank" rel="noopener noreferrer">КиноПоиск</a>
-        <a href="https://wink.ru" target="_blank" rel="noopener noreferrer">Wink</a>
-    </div>
-    
-    <div className="footer-column">
-        <h4>Информация</h4>
-        <Link to="/about">О проекте</Link>
-        <Link to="/privacy">Политика конфиденциальности</Link>
-    </div>
-    
-    <div className="footer-column">
-        <h4>Помощь</h4>
-        <Link to="/faq">FAQ</Link>
-        <a href="mailto:support@vzorros.ru">Техподдержка</a>
-        <a href="mailto:partner@vzorros.ru">Сотрудничество</a>
-    </div>
-</div>
+                                <div className="footer-column">
+                                    <h4>Партнёры</h4>
+                                    <a href="https://okko.tv" target="_blank" rel="noopener noreferrer">OKKO</a>
+                                    <a href="https://ivi.ru" target="_blank" rel="noopener noreferrer">IVI</a>
+                                    <a href="https://kion.ru" target="_blank" rel="noopener noreferrer">KION</a>
+                                    <a href="https://premier.one" target="_blank" rel="noopener noreferrer">Premier</a>
+                                    <a href="https://kinopoisk.ru" target="_blank" rel="noopener noreferrer">КиноПоиск</a>
+                                    <a href="https://wink.ru" target="_blank" rel="noopener noreferrer">Wink</a>
+                                </div>
+                                
+                                <div className="footer-column">
+                                    <h4>Информация</h4>
+                                    <Link to="/about">О проекте</Link>
+                                    {/* ССЫЛКА "НОВОСТИ КИНО" УДАЛЕНА ОТСЮДА */}
+                                    <Link to="/privacy">Политика конфиденциальности</Link>
+                                </div>
+                                
+                                <div className="footer-column">
+                                    <h4>Помощь</h4>
+                                    <Link to="/faq">FAQ</Link>
+                                    <a href="mailto:support@vzorros.ru">Техподдержка</a>
+                                    <a href="mailto:partner@vzorros.ru">Сотрудничество</a>
+                                </div>
+                            </div>
                         </div>
                         
                         <div className="footer-bottom">
@@ -356,7 +378,6 @@ const Layout = ({ children }) => {
                 </div>
             </div>
 
-            {/* Cookie Consent Banner */}
             <CookieConsent />
         </>
     );
