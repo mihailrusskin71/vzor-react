@@ -614,3 +614,87 @@
         display: none;
     }
 }
+/* Только для десктопа */
+.news-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 30px;
+  color: #1a1a1a;
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  white-space: nowrap;
+}
+
+.news-trigger svg {
+  width: 18px;
+  height: 18px;
+  stroke: #1a1a1a;
+  transition: transform 0.3s ease;
+}
+
+.news-trigger span {
+  line-height: 1;
+}
+
+.news-trigger:hover {
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+  color: #000;
+}
+
+.news-trigger:hover svg {
+  transform: scale(1.05);
+  stroke: #FF6A2B;
+}
+
+.news-trigger.active {
+  background: rgba(255, 255, 255, 0.95);
+  color: #FF6A2B;
+}
+
+.news-trigger.active svg {
+  stroke: #FF6A2B;
+}
+
+/* Скрываем кнопку на мобильных устройствах */
+@media (max-width: 768px) {
+  .news-trigger {
+    display: none !important;
+  }
+}
+
+/* Корректировка header-actions для размещения новой кнопки */
+@media (min-width: 769px) {
+  .header-actions {
+    gap: 12px;
+  }
+}
+
+/* Тёмная тема - делаем кнопку всё равно светлой, так как это фишка дизайна */
+[data-theme="dark"] .news-trigger {
+  background: rgba(255, 255, 255, 0.9);
+  color: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+[data-theme="dark"] .news-trigger svg {
+  stroke: #1a1a1a;
+}
+
+[data-theme="dark"] .news-trigger:hover {
+  background: rgba(255, 255, 255, 1);
+}
+
+[data-theme="dark"] .news-trigger:hover svg {
+  stroke: #FF6A2B;
+}
