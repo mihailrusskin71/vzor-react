@@ -131,23 +131,15 @@
 }
 
 .section-heading-with-icon {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    display: block;
+    font-size: 24px;
+    font-weight: 600;
     margin-bottom: 24px;
+    color: var(--text-primary);
 }
 
 .section-heading-with-icon svg {
-    width: 24px;
-    height: 24px;
-    stroke: var(--text-primary);
-}
-
-.section-heading-with-icon h2 {
-    font-size: 24px;
-    font-weight: 600;
-    margin: 0;
-    color: var(--text-primary);
+    display: none;
 }
 
 .subscription-calendar {
@@ -155,6 +147,11 @@
     border: 1px solid var(--border);
     border-radius: 20px;
     padding: 24px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
 }
 
 .calendar-header {
@@ -165,22 +162,32 @@
 }
 
 .calendar-nav-btn {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    width: 40px;
-    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 10px;
     cursor: pointer;
     transition: all 0.3s ease;
     color: var(--text-primary);
+    font-size: 18px;
+    font-weight: bold;
 }
 
 .calendar-nav-btn:hover {
     background: rgba(255, 106, 43, 0.1);
     border-color: var(--accent);
+}
+
+.nav-arrow-left,
+.nav-arrow-right {
+    display: inline-block;
+    font-size: 18px;
+    line-height: 1;
+    color: inherit;
 }
 
 .calendar-month-year {
@@ -212,16 +219,23 @@
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 4px;
+    min-width: 280px;
 }
 
 .calendar-day {
     aspect-ratio: 1;
-    padding: 8px;
-    border-radius: 12px;
+    min-width: 0;
+    width: 100%;
+    padding: 4px;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
     background: rgba(255, 255, 255, 0.02);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
 }
 
 .calendar-day.empty {
@@ -245,27 +259,32 @@
 }
 
 .day-number {
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 500;
     color: var(--text-primary);
+    margin-bottom: 2px;
 }
 
 .day-subscriptions {
     display: flex;
-    gap: 3px;
-    margin-top: 6px;
+    gap: 2px;
+    margin-top: 2px;
     flex-wrap: wrap;
+    justify-content: center;
+    max-width: 100%;
 }
 
 .day-subscription-dot {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
+    flex-shrink: 0;
 }
 
 .day-subscription-more {
     font-size: 8px;
     color: var(--text-secondary);
+    margin-left: 1px;
 }
 
 .selected-date-info {
@@ -354,7 +373,6 @@
     gap: 16px;
 }
 
-/* Карточка подписки - компактная */
 .subscription-card-wrapper {
     position: relative;
     overflow: hidden;
@@ -504,11 +522,6 @@
     color: var(--text-secondary);
 }
 
-.delete-subscription-btn {
-    display: none;
-}
-
-/* Плашка удаления (только на мобильных) */
 .subscription-swipe-delete {
     display: none;
 }
@@ -663,7 +676,6 @@
     gap: 12px;
 }
 
-/* Партнеры - 2 строки по 3 колонки */
 .partner-select-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -709,7 +721,6 @@
     color: var(--accent);
 }
 
-/* Узкие поля даты */
 .form-group input[type="date"] {
     padding: 10px 8px;
     font-size: 13px;
@@ -828,6 +839,94 @@
     color: var(--text-primary);
 }
 
+/* ========== НАПОМИНАНИЯ В ПРОФИЛЕ ========== */
+.reminders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin: 20px 0;
+}
+
+.reminder-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+}
+
+.reminder-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: var(--border-light);
+    transform: translateX(4px);
+}
+
+.reminder-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+}
+
+.reminder-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.5);
+}
+
+.reminder-info {
+    flex: 1;
+}
+
+.reminder-info h4 {
+    margin: 0 0 4px 0;
+    color: var(--text-primary);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.reminder-info p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.reminder-date {
+    font-size: 12px;
+    opacity: 0.8;
+    margin-top: 4px;
+    color: var(--text-muted);
+}
+
+.reminder-goto-btn {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.reminder-goto-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
 /* ========== МОБИЛЬНЫЕ СТИЛИ ========== */
 @media (max-width: 768px) {
     .subscriptions-header {
@@ -853,13 +952,16 @@
         font-size: 20px;
     }
     
-    /* Календарь - помещается в экран */
-    .subscription-calendar {
-        padding: 12px;
-        overflow-x: auto;
+    .section-heading-with-icon {
+        font-size: 20px;
+        margin-bottom: 16px;
     }
     
-    .calendar-days {
+    .subscription-calendar {
+        padding: 12px;
+    }
+    
+    .calendar-weekdays {
         min-width: 280px;
     }
     
@@ -877,20 +979,29 @@
         height: 36px;
     }
     
+    .nav-arrow-left,
+    .nav-arrow-right {
+        font-size: 16px;
+    }
+    
     .weekday {
         padding: 8px;
         font-size: 12px;
     }
     
     .calendar-day {
-        padding: 4px;
+        padding: 3px;
     }
     
     .day-number {
-        font-size: 12px;
+        font-size: 11px;
     }
     
-    /* Карточка подписки - компактная как была */
+    .day-subscription-dot {
+        width: 5px;
+        height: 5px;
+    }
+    
     .subscription-card {
         padding: 12px;
     }
@@ -926,7 +1037,6 @@
         font-size: 10px;
     }
     
-    /* Плашка удаления на мобильных */
     .subscription-swipe-delete {
         display: flex;
         position: absolute;
@@ -963,7 +1073,6 @@
         color: white;
     }
     
-    /* Модальное окно на мобильных */
     .subscription-modal {
         width: 95%;
         max-height: 80vh;
@@ -993,9 +1102,7 @@
         gap: 10px;
     }
     
-    /* Партнеры на мобильных - 3 колонки, компактные */
     .partner-select-grid {
-        grid-template-columns: repeat(3, 1fr);
         gap: 6px;
     }
     
@@ -1012,7 +1119,6 @@
         font-size: 9px;
     }
     
-    /* Узкие поля даты на мобильных */
     .form-group input[type="date"] {
         padding: 8px 4px;
         font-size: 11px;
@@ -1027,6 +1133,30 @@
     .save-btn {
         padding: 8px 16px;
         font-size: 13px;
+    }
+    
+    .reminder-item {
+        flex-wrap: wrap;
+        padding: 12px 16px;
+    }
+    
+    .reminder-icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .reminder-info h4 {
+        font-size: 14px;
+    }
+    
+    .reminder-info p {
+        font-size: 13px;
+    }
+    
+    .reminder-goto-btn {
+        width: 100%;
+        margin-top: 8px;
+        text-align: center;
     }
 }
 
@@ -1055,10 +1185,6 @@
     
     .stat-label {
         font-size: 11px;
-    }
-    
-    .section-heading-with-icon h2 {
-        font-size: 18px;
     }
     
     .partner-select-grid {
@@ -1116,4 +1242,30 @@
 
 [data-theme="light"] .modal-close:hover {
     background: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .reminder-item {
+    background: #ffffff;
+    border-color: #e0e0e0;
+}
+
+[data-theme="light"] .reminder-item:hover {
+    background: #fafafa;
+    border-color: #cccccc;
+}
+
+[data-theme="light"] .reminder-icon {
+    background: #f5f5f5;
+    border-color: #e0e0e0;
+}
+
+[data-theme="light"] .reminder-goto-btn {
+    border-color: #cccccc;
+    color: #666666;
+}
+
+[data-theme="light"] .reminder-goto-btn:hover {
+    background: #f5f5f5;
+    border-color: var(--accent);
+    color: var(--accent);
 }
